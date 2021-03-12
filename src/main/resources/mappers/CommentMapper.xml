@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcbs.webforum.model.dao.CommentMapper">
+  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.Comment">
+    <id column="comment_id" jdbcType="BIGINT" property="commentId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="parent_id" jdbcType="BIGINT" property="parentId" />
+    <result column="comment_time" jdbcType="TIMESTAMP" property="commentTime" />
+    <result column="visibility" jdbcType="INTEGER" property="visibility" />
+  </resultMap>
+  <resultMap id="CommentResultMap" type="com.kcbs.webforum.model.vo.CommentVo">
+    <id column="comment_id" jdbcType="BIGINT" property="commentId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="parent_id" jdbcType="BIGINT" property="parentId" />
+    <result column="comment_time" jdbcType="TIMESTAMP" property="commentTime" />
+    <result column="visibility" jdbcType="INTEGER" property="visibility" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture" />
+    <result column="personalized_signature" jdbcType="VARCHAR" property="personalizedSignature" />
+    <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    comment_id, user_id, content, parent_id, comment_time, visibility
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from forum_comment
+    where comment_id = #{commentId,jdbcType=BIGINT}
+  </select>
+  <select id="selectByParentId" parameterType="java.lang.Long" resultMap="CommentResultMap">
+    select distinct c.comment_id,c.user_id,c.parent_id,c.content,c.comment_time,c.visibility,u.username,u.head_sculpture,u.personalized_signature,ct.category_name,p.title
+    from forum_comment c JOIN forum_user u
+    ON c.user_id = u.user_id JOIN forum_post p
+    ON c.parent_id = p.post_id JOIN forum_category ct
+    ON p.category_id = ct.category_id
+    where c.parent_id = #{postId,jdbcType=BIGINT} AND c.visibility = 1;
+  </select>
+  <select id="selectByUserId" parameterType="java.lang.Long" resultMap="CommentResultMap">
+    select distinct c.comment_id,c.user_id,c.parent_id,c.content,c.comment_time,c.visibility,u.username,u.head_sculpture,u.personalized_signature,ct.category_name,p.title
+    from forum_comment c JOIN forum_user u
+    ON c.user_id = u.user_id JOIN forum_post p
+    ON c.parent_id = p.post_id JOIN forum_category ct
+    ON p.category_id = ct.category_id
+    where c.user_id = #{userId,jdbcType=BIGINT} AND c.visibility = 1;
+  </select>
+  <select id="selectByPostId" parameterType="java.lang.Long" resultType="integer">
+    select distinct COUNT(*)
+    from forum_comment
+    where parent_id = #{postId,jdbcType=BIGINT} AND visibility = 1
+  </select>
+  <select id="getCommentNumById" parameterType="java.lang.Long" resultType="integer">
+    select COUNT(*)
+    from forum_comment
+    where user_id = #{id,jdbcType=BIGINT} AND visibility = 1
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from forum_comment
+    where comment_id = #{commentId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.Comment">
+    insert into forum_comment (comment_id, user_id, content, 
+      parent_id, comment_time, visibility
+      )
+    values (#{commentId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{content,jdbcType=VARCHAR},
+      #{parentId,jdbcType=BIGINT}, #{commentTime,jdbcType=TIMESTAMP}, #{visibility,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.Comment">
+    insert into forum_comment
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="commentId != null">
+        comment_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="parentId != null">
+        parent_id,
+      </if>
+      <if test="commentTime != null">
+        comment_time,
+      </if>
+      <if test="visibility != null">
+        visibility,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="commentId != null">
+        #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="parentId != null">
+        #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="commentTime != null">
+        #{commentTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="visibility != null">
+        #{visibility,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.Comment">
+    update forum_comment
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="parentId != null">
+        parent_id = #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="commentTime != null">
+        comment_time = #{commentTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="visibility != null">
+        visibility = #{visibility,jdbcType=INTEGER},
+      </if>
+    </set>
+    where comment_id = #{commentId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.Comment">
+    update forum_comment
+    set user_id = #{userId,jdbcType=BIGINT},
+      content = #{content,jdbcType=VARCHAR},
+      parent_id = #{parentId,jdbcType=BIGINT},
+      comment_time = #{commentTime,jdbcType=TIMESTAMP},
+      visibility = #{visibility,jdbcType=INTEGER}
+    where comment_id = #{commentId,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcbs.webforum.model.dao.UCSubscribeMapper">
+  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.UCSubscribe">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="category_id" jdbcType="BIGINT" property="categoryId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="is_del" jdbcType="TINYINT" property="isDel" />
+  </resultMap>
+  <resultMap id="CategoryResultMap" type="com.kcbs.webforum.model.pojo.Category">
+    <id column="category_id" jdbcType="BIGINT" property="categoryId" />
+    <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
+    <result column="category_image" jdbcType="VARCHAR" property="categoryImage" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, category_id, user_id, is_del
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from forum_user_category_subscribe
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectByUCID" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select distinct uc1.id,uc1.category_id,uc1.user_id,uc1.is_del
+    from forum_user_category_subscribe uc1 JOIN forum_user_category_subscribe uc2
+    ON uc1.category_id = uc2.category_id
+    WHERE uc1.category_id = #{param2,jdbcType=BIGINT} AND uc1.user_id = #{param1,jdbcType=BIGINT}
+  </select>
+  <select id="getCategoryByUserId" parameterType="java.lang.Long" resultMap="CategoryResultMap">
+    select distinct c.category_id,c.category_name,c.category_image
+    from forum_user_category_subscribe uc JOIN forum_category c
+    ON uc.category_id = c.category_id
+		WHERE uc.user_id = #{userId,jdbcType=BIGINT} AND uc.is_del = 0 AND c.visibility=0;
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from forum_user_category_subscribe
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.UCSubscribe">
+    insert into forum_user_category_subscribe (id, category_id, user_id, 
+      is_del)
+    values (#{id,jdbcType=BIGINT}, #{categoryId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, 
+      #{isDel,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.UCSubscribe">
+    insert into forum_user_category_subscribe
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="categoryId != null">
+        category_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="isDel != null">
+        is_del,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="categoryId != null">
+        #{categoryId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="isDel != null">
+        #{isDel,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.UCSubscribe">
+    update forum_user_category_subscribe
+    <set>
+      <if test="categoryId != null">
+        category_id = #{categoryId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="isDel != null">
+        is_del = #{isDel,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.UCSubscribe">
+    update forum_user_category_subscribe
+    set category_id = #{categoryId,jdbcType=BIGINT},
+      user_id = #{userId,jdbcType=BIGINT},
+      is_del = #{isDel,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

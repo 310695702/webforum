@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcbs.webforum.model.dao.MsgStateMapper">
+  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.MsgState">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="post_id" jdbcType="BIGINT" property="postId" />
+    <result column="msg_state" jdbcType="INTEGER" property="msgState" />
+  </resultMap>
+  <resultMap id="PostResultMap" type="com.kcbs.webforum.model.vo.PostVO">
+    <id column="post_id" jdbcType="BIGINT" property="postId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="category_id" jdbcType="BIGINT" property="categoryId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="username" jdbcType="VARCHAR" property="userName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
+    <result column="visibility" jdbcType="INTEGER" property="visibility" />
+    <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture" />
+    <result column="personalized_signature" jdbcType="VARCHAR" property="personalizedSignature" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, user_id, post_id, msg_state
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from forum_msg_state
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectByUser" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select distinct m1.id, m1.user_id, m1.post_id, m1.msg_state
+    from forum_msg_state m1 JOIN forum_msg_state m2
+    ON m1.id = m2.id
+    where  m1.user_id = #{userId,jdbcType=BIGINT} AND m1.msg_state = 1;
+  </select>
+  <select id="selectVoByUser" parameterType="java.lang.Long" resultMap="PostResultMap">
+    select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,p.visibility,u.head_sculpture,u.personalized_signature
+    from forum_msg_state m JOIN forum_post p
+    ON m.post_id = p.post_id JOIN forum_user u
+    ON m.user_id = u.user_id
+    where  m.user_id = #{userId,jdbcType=BIGINT} AND msg_state = 1;
+  </select>
+  <select id="selectByDID" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from forum_msg_state
+    where  user_id = #{param1,jdbcType=BIGINT} AND post_id = #{param2,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from forum_msg_state
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.MsgState">
+    insert into forum_msg_state (id, user_id, post_id, 
+      msg_state)
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{postId,jdbcType=BIGINT}, 
+      #{msgState,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.MsgState">
+    insert into forum_msg_state
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="postId != null">
+        post_id,
+      </if>
+      <if test="msgState != null">
+        msg_state,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="postId != null">
+        #{postId,jdbcType=BIGINT},
+      </if>
+      <if test="msgState != null">
+        #{msgState,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.MsgState">
+    update forum_msg_state
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="postId != null">
+        post_id = #{postId,jdbcType=BIGINT},
+      </if>
+      <if test="msgState != null">
+        msg_state = #{msgState,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.MsgState">
+    update forum_msg_state
+    set user_id = #{userId,jdbcType=BIGINT},
+      post_id = #{postId,jdbcType=BIGINT},
+      msg_state = #{msgState,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcbs.webforum.model.dao.CommentImagesMapper">
+  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.CommentImages">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="comment_id" jdbcType="BIGINT" property="commentId" />
+    <result column="comment_image" jdbcType="VARCHAR" property="commentImage" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, comment_id, comment_image
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from forum_comment_images
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from forum_comment_images
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.CommentImages">
+    insert into forum_comment_images (id, comment_id, comment_image
+      )
+    values (#{id,jdbcType=BIGINT}, #{commentId,jdbcType=BIGINT}, #{commentImage,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.CommentImages">
+    insert into forum_comment_images
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="commentId != null">
+        comment_id,
+      </if>
+      <if test="commentImage != null">
+        comment_image,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="commentId != null">
+        #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="commentImage != null">
+        #{commentImage,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.CommentImages">
+    update forum_comment_images
+    <set>
+      <if test="commentId != null">
+        comment_id = #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="commentImage != null">
+        comment_image = #{commentImage,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.CommentImages">
+    update forum_comment_images
+    set comment_id = #{commentId,jdbcType=BIGINT},
+      comment_image = #{commentImage,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

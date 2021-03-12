@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcbs.webforum.model.dao.SubscribeMapper">
+  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.Subscribe">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="be_subscribe" jdbcType="BIGINT" property="beSubscribe" />
+    <result column="subscribe" jdbcType="BIGINT" property="subscribe" />
+    <result column="is_del" jdbcType="TINYINT" property="isDel" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, be_subscribe, subscribe, is_del, update_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from forum_subscribe
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectBybeSubscribeAndsubscribe" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select f1.id,f1.be_subscribe,f1.subscribe,f1.is_del,f1.update_time
+    from forum_subscribe f1 JOIN forum_subscribe f2
+    ON f1.id = f2.id
+    where f1.be_subscribe = #{param1,jdbcType=BIGINT} AND f1.subscribe = #{param2,jdbcType=BIGINT}
+  </select>
+  <select id="checkSubscribeById" parameterType="java.lang.Long" resultType="integer">
+    select COUNT(*)
+    from forum_subscribe
+    where be_subscribe = #{param1,jdbcType=BIGINT} AND subscribe = #{param2,jdbcType=BIGINT} AND is_del = 0
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from forum_subscribe
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.Subscribe">
+    insert into forum_subscribe (id, be_subscribe, subscribe, 
+      is_del, update_time)
+    values (#{id,jdbcType=BIGINT}, #{beSubscribe,jdbcType=BIGINT}, #{subscribe,jdbcType=BIGINT}, 
+      #{isDel,jdbcType=TINYINT}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.Subscribe">
+    insert into forum_subscribe
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="beSubscribe != null">
+        be_subscribe,
+      </if>
+      <if test="subscribe != null">
+        subscribe,
+      </if>
+      <if test="isDel != null">
+        is_del,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="beSubscribe != null">
+        #{beSubscribe,jdbcType=BIGINT},
+      </if>
+      <if test="subscribe != null">
+        #{subscribe,jdbcType=BIGINT},
+      </if>
+      <if test="isDel != null">
+        #{isDel,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.Subscribe">
+    update forum_subscribe
+    <set>
+      <if test="beSubscribe != null">
+        be_subscribe = #{beSubscribe,jdbcType=BIGINT},
+      </if>
+      <if test="subscribe != null">
+        subscribe = #{subscribe,jdbcType=BIGINT},
+      </if>
+      <if test="isDel != null">
+        is_del = #{isDel,jdbcType=TINYINT},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.Subscribe">
+    update  forum_subscribe
+    set be_subscribe = #{beSubscribe,jdbcType=BIGINT},
+      subscribe = #{subscribe,jdbcType=BIGINT},
+      is_del = #{isDel,jdbcType=TINYINT},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
