@@ -13,5 +13,5 @@ public class MD5Util {
         return Base64.encodeBase64String(md5.digest((str+ Constant.SALT).getBytes()));
     }
 
-
+    
 }

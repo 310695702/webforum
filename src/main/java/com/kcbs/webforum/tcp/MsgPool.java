@@ -9,7 +9,7 @@ public class  MsgPool {
 
     private LinkedBlockingQueue<String> mQueue = new LinkedBlockingQueue<>();
 
-    public static MsgPool getsInstance() {
+    public static MsgPool getInstance() {
         return sInstance;
     }
 

@@ -9,15 +9,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
 @Api(tags = "帖子分类(查询、新增)接口",description = "获取所有帖子也在内")
 @RestController
 public class CategoryController {
@@ -36,6 +32,7 @@ public class CategoryController {
         PageInfo pageInfo = categoryService.getListForCategory(pageNum, pageSize, categoryId,orderBy);
         return ApiRestResponse.success(pageInfo);
     }
+
 
     @GetMapping("/admin/getPost")
     @ApiOperation("查询回收站内所有帖子")

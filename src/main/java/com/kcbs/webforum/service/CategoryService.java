@@ -26,4 +26,5 @@ public interface CategoryService {
     void updateCategoryRecommend(Long categoryId, int type) throws WebforumException;
 
     int deleteCategoryById(Long categoryId) throws WebforumException;
+
 }

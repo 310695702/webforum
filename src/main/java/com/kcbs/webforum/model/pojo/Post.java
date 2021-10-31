@@ -22,13 +22,23 @@ public class Post implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 
-    private int isEssences;
+    private Integer isEssences;
 
-    public int getIsEssences() {
+    private Integer viewNum;
+
+    public Integer getViewNum() {
+        return viewNum;
+    }
+
+    public void setViewNum(Integer viewNum) {
+        this.viewNum = viewNum;
+    }
+
+    public Integer getIsEssences() {
         return isEssences;
     }
 
-    public void setIsEssences(int isEssences) {
+    public void setIsEssences(Integer isEssences) {
         this.isEssences = isEssences;
     }
 

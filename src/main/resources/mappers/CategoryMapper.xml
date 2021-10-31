@@ -19,6 +19,7 @@
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
     <result column="visibility" jdbcType="INTEGER" property="visibility" />
+    <result column="view_num" jdbcType="INTEGER" property="viewNum" />
     <result column="is_essences" jdbcType="INTEGER" property="isEssences" />
     <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture" />
     <result column="personalized_signature" jdbcType="VARCHAR" property="personalizedSignature" />
@@ -50,14 +51,14 @@
     WHERE category_id = #{id,jdbcType=BIGINT} AND visibility = 1
   </select>
   <select id="selectList"  resultMap="PostResultMap">
-   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
     WHERE p.visibility=1 AND c.visibility=0;
   </select>
   <select id="selectListOrderByHot"  resultMap="PostResultMap">
-   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
@@ -66,21 +67,28 @@
     WHERE parent_id = p.post_id AND visibility = 1)>10 AND c.visibility=0;
   </select>
   <select id="selectEssencesList"  resultMap="PostResultMap">
-   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
+    from forum_category c JOIN forum_post p
+    ON c.category_id = p.category_id JOIN forum_user u
+    ON p.user_id = u.user_id
+    WHERE p.visibility=1 AND p.is_essences = 1 AND c.visibility=0;
+  </select>
+  <select id="selectALLEssencesList"  resultMap="PostResultMap">
+   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
     WHERE p.visibility=1 AND p.is_essences = 1 AND c.visibility=0;
   </select>
   <select id="selectEssencesListByCategoryId"  resultMap="PostResultMap">
-   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
     WHERE c.category_id = #{categoryId,jdbcType=BIGINT} AND p.visibility=1 AND p.is_essences = 1 AND c.visibility=0;
   </select>
   <select id="selectListByCategoryOrderByHot" parameterType="java.lang.Long" resultMap="PostResultMap">
-    select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+    select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
@@ -94,21 +102,21 @@
     WHERE parent_id = #{id,jdbcType=BIGINT} AND visibility = 1
   </select>
   <select id="selectRollBackList"  resultMap="PostResultMap">
-   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
     WHERE p.visibility=2 AND c.visibility=0;
   </select>
   <select id="searchListByContent"  resultMap="PostResultMap">
-   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+   select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
     WHERE p.visibility=1 AND (p.title LIKE concat(concat("%",#{s}),"%") or p.content LIKE concat(concat("%",#{s}),"%") or u.username LIKE concat(concat("%",#{s}),"%")) AND c.visibility=0;
   </select>
   <select id="selectListByCategory" parameterType="java.lang.Long" resultMap="PostResultMap">
-    select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences
+    select distinct p.post_id,p.title,p.content,p.category_id,p.user_id,p.update_time,u.username,p.create_time,c.category_name,p.visibility,u.head_sculpture,u.personalized_signature,p.is_essences,p.view_num
     from forum_category c JOIN forum_post p
     ON c.category_id = p.category_id JOIN forum_user u
     ON p.user_id = u.user_id
@@ -169,7 +177,7 @@
         category_image = #{categoryImage,jdbcType=VARCHAR},
       </if>
       <if test="isRecommend != null">
-        is_recommend = #{isRecommend,jdbcType=TINYINT}
+        is_recommend = #{isRecommend,jdbcType=TINYINT},
       </if>
       <if test="visibility != null">
         visibility = #{visibility,jdbcType=INTEGER}

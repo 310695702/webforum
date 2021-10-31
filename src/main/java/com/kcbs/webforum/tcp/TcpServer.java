@@ -10,13 +10,13 @@ public class TcpServer {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(8089);
-            MsgPool.getsInstance().start();
+            MsgPool.getInstance().start();
 
             while (true){
                 Socket socket = serverSocket.accept();
                 System.out.println("ip = "+socket.getInetAddress().getHostAddress()+" ,port = "+socket.getPort()+" is online...");
                 ClientTask clientTask = new ClientTask(socket);
-                MsgPool.getsInstance().addMsgComingListener(clientTask);
+                MsgPool.getInstance().addMsgComingListener(clientTask);
                 clientTask.start();
             }
         }catch (IOException e){

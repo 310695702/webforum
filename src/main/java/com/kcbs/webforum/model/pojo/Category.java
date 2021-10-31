@@ -1,6 +1,8 @@
 package com.kcbs.webforum.model.pojo;
 
-public class Category {
+import java.io.Serializable;
+
+public class Category implements Serializable {
     private Long categoryId;
 
     private String categoryName;
@@ -10,6 +12,36 @@ public class Category {
     private Byte isRecommend;
 
     private int visibility;
+
+    private int isSign;
+
+    private int exp;
+
+    private int signDays;
+
+    public int getSignDays() {
+        return signDays;
+    }
+
+    public void setSignDays(int signDays) {
+        this.signDays = signDays;
+    }
+
+    public int getExp() {
+        return exp;
+    }
+
+    public void setExp(int exp) {
+        this.exp = exp;
+    }
+
+    public int getIsSign() {
+        return isSign;
+    }
+
+    public void setIsSign(int isSign) {
+        this.isSign = isSign;
+    }
 
     public int getVisibility() {
         return visibility;
@@ -43,14 +75,6 @@ public class Category {
         this.categoryName = categoryName == null ? null : categoryName.trim();
     }
 
-    public String getCategoryImage() {
-        return categoryImage;
-    }
-
-    public void setCategoryImage(String categoryImage) {
-        this.categoryImage = categoryImage;
-    }
-
     @Override
     public String toString() {
         return "Category{" +
@@ -59,6 +83,19 @@ public class Category {
                 ", categoryImage='" + categoryImage + '\'' +
                 ", isRecommend=" + isRecommend +
                 ", visibility=" + visibility +
+                ", isSign=" + isSign +
+                ", exp=" + exp +
+                ", signDays=" + signDays +
                 '}';
     }
+
+    public String getCategoryImage() {
+        return categoryImage;
+    }
+
+    public void setCategoryImage(String categoryImage) {
+        this.categoryImage = categoryImage;
+    }
+
+
 }

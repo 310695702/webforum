@@ -30,4 +30,6 @@ public interface PostService {
     ApiRestResponse uploadPostImage(List<MultipartFile> images,HttpServletRequest request) throws WebforumException;
 
     ApiRestResponse addEssences(Long postId,int type) throws WebforumException;
+
+    ApiRestResponse selectRandomPost();
 }

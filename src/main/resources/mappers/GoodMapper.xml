@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcbs.webforum.model.dao.GoodMapper">
+  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.Good">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="post_id" jdbcType="BIGINT" property="postId" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.kcbs.webforum.model.pojo.Good">
+    <result column="users" jdbcType="LONGVARCHAR" property="users" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, post_id
+  </sql>
+  <sql id="Blob_Column_List">
+    users
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from forum_good
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectByPostId" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+    select *
+    from forum_good
+    where post_id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from forum_good
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.Good">
+    INSERT INTO forum_good(`post_id`, `users`) VALUES (#{postId}, #{users});
+  </insert>
+  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.Good">
+    insert into forum_good
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="postId != null">
+        post_id,
+      </if>
+      <if test="users != null">
+        users,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="postId != null">
+        #{postId,jdbcType=BIGINT},
+      </if>
+      <if test="users != null">
+        #{users,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.Good">
+    update forum_good
+    <set>
+      <if test="postId != null">
+        post_id = #{postId,jdbcType=BIGINT},
+      </if>
+      <if test="users != null">
+        users = #{users,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.kcbs.webforum.model.pojo.Good">
+    update forum_good
+    set post_id = #{postId,jdbcType=BIGINT},
+      users = #{users,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.Good">
+    update forum_good
+    set post_id = #{postId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -34,6 +34,26 @@ public class PostVO implements Serializable {
 
     private int isEssences;
 
+    private int viewNum;
+
+    private int goodNum;
+
+    public int getGoodNum() {
+        return goodNum;
+    }
+
+    public void setGoodNum(int goodNum) {
+        this.goodNum = goodNum;
+    }
+
+    public int getViewNum() {
+        return viewNum;
+    }
+
+    public void setViewNum(int viewNum) {
+        this.viewNum = viewNum;
+    }
+
     public int getIsEssences() {
         return isEssences;
     }

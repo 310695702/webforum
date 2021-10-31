@@ -29,7 +29,7 @@
     select 
     <include refid="Base_Column_List" />
     from forum_comment
-    where comment_id = #{commentId,jdbcType=BIGINT}
+    where comment_id = #{commentId,jdbcType=BIGINT} AND visibility = 1;
   </select>
   <select id="selectByParentId" parameterType="java.lang.Long" resultMap="CommentResultMap">
     select distinct c.comment_id,c.user_id,c.parent_id,c.content,c.comment_time,c.visibility,u.username,u.head_sculpture,u.personalized_signature,ct.category_name,p.title
@@ -46,6 +46,10 @@
     ON c.parent_id = p.post_id JOIN forum_category ct
     ON p.category_id = ct.category_id
     where c.user_id = #{userId,jdbcType=BIGINT} AND c.visibility = 1;
+  </select>
+  <select id="selectLastId"  resultType="long">
+    select distinct LAST_INSERT_ID()
+    FROM forum_comment
   </select>
   <select id="selectByPostId" parameterType="java.lang.Long" resultType="integer">
     select distinct COUNT(*)

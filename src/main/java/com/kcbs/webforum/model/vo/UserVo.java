@@ -2,9 +2,10 @@ package com.kcbs.webforum.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class UserVo {
+public class UserVo implements Serializable {
     private Long userId;
 
     private String username;
@@ -44,6 +45,16 @@ public class UserVo {
     private String qq;
 
     private int wordNumber;
+
+    private int exp;
+
+    public int getExp() {
+        return exp;
+    }
+
+    public void setExp(int exp) {
+        this.exp = exp;
+    }
 
     public String getSchool() {
         return school;
@@ -228,6 +239,7 @@ public class UserVo {
                 ", wechat='" + wechat + '\'' +
                 ", qq='" + qq + '\'' +
                 ", wordNumber=" + wordNumber +
+                ", exp=" + exp +
                 '}';
     }
 }

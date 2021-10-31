@@ -1,71 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kcbs.webforum.model.dao.UserMapper">
-  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.User">
-    <id column="user_id" jdbcType="BIGINT" property="userId" />
-    <result column="username" jdbcType="VARCHAR" property="username" />
-    <result column="password" jdbcType="VARCHAR" property="password" />
-    <result column="email" jdbcType="VARCHAR" property="email" />
-    <result column="personalized_signature" jdbcType="VARCHAR" property="personalizedSignature" />
-    <result column="role" jdbcType="INTEGER" property="role" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture"/>
-    <result column="is_ban" jdbcType="INTEGER" property="isBan" />
-    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
-    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
-    <result column="ban_message" jdbcType="VARCHAR" property="banMessage"/>
-  </resultMap>
-  <resultMap id="UserVoResultMap" type="com.kcbs.webforum.model.vo.UserVo">
-    <id column="user_id" jdbcType="BIGINT" property="userId" />
-    <result column="username" jdbcType="VARCHAR" property="username" />
-    <result column="password" jdbcType="VARCHAR" property="password" />
-    <result column="email" jdbcType="VARCHAR" property="email" />
-    <result column="personalized_signature" jdbcType="VARCHAR" property="personalizedSignature" />
-    <result column="role" jdbcType="INTEGER" property="role" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture"/>
-    <result column="is_ban" jdbcType="INTEGER" property="isBan" />
-    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
-    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
-    <result column="ban_message" jdbcType="VARCHAR" property="banMessage"/>
-    <result column="school" jdbcType="VARCHAR" property="school"/>
-    <result column="school" jdbcType="VARCHAR" property="school"/>
-    <result column="sex" jdbcType="INTEGER" property="sex"/>
-    <result column="personal_website" jdbcType="VARCHAR" property="personalWebsite"/>
-    <result column="wechat" jdbcType="VARCHAR" property="wechat"/>
-    <result column="qq" jdbcType="VARCHAR" property="qq"/>
-  </resultMap>
-  <resultMap id="subscribeIdResultMap" type="long">
-    <result column="subscribe" jdbcType="BIGINT" />
-  </resultMap>
-  <sql id="Base_Column_List">
+    <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.User">
+        <id column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="personalized_signature" jdbcType="VARCHAR" property="personalizedSignature"/>
+        <result column="role" jdbcType="INTEGER" property="role"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture"/>
+        <result column="is_ban" jdbcType="INTEGER" property="isBan"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="ban_message" jdbcType="VARCHAR" property="banMessage"/>
+        <result column="personal_website" jdbcType="VARCHAR" property="personalWebsite"/>
+        <result column="school" jdbcType="VARCHAR" property="school"/>
+        <result column="qq" jdbcType="VARCHAR" property="qq"/>
+        <result column="wechat" jdbcType="VARCHAR" property="wechat"/>
+        <result column="sex" jdbcType="INTEGER" property="sex"/>
+
+    </resultMap>
+    <resultMap id="rankMap" type="com.kcbs.webforum.model.vo.URank">
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="count" jdbcType="INTEGER" property="count"/>
+    </resultMap>
+    <resultMap id="UserVoResultMap" type="com.kcbs.webforum.model.vo.UserVo">
+        <id column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="personalized_signature" jdbcType="VARCHAR" property="personalizedSignature"/>
+        <result column="role" jdbcType="INTEGER" property="role"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture"/>
+        <result column="is_ban" jdbcType="INTEGER" property="isBan"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="ban_message" jdbcType="VARCHAR" property="banMessage"/>
+        <result column="school" jdbcType="VARCHAR" property="school"/>
+        <result column="school" jdbcType="VARCHAR" property="school"/>
+        <result column="sex" jdbcType="INTEGER" property="sex"/>
+        <result column="personal_website" jdbcType="VARCHAR" property="personalWebsite"/>
+        <result column="wechat" jdbcType="VARCHAR" property="wechat"/>
+        <result column="qq" jdbcType="VARCHAR" property="qq"/>
+    </resultMap>
+    <resultMap id="subscribeIdResultMap" type="long">
+        <result column="subscribe" jdbcType="BIGINT"/>
+    </resultMap>
+    <sql id="Base_Column_List">
     user_id, username, `password`, email, personalized_signature, `role`, create_time,
     update_time,`head_sculpture`, `is_ban`, start_time,end_time,`ban_message`
   </sql>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select 
-    <include refid="Base_Column_List" />
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select *
     from forum_user
     where user_id = #{userId,jdbcType=BIGINT}
   </select>
-  <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select *
     from forum_user
     where binary username = #{username,jdbcType=VARCHAR}
   </select>
-  <select id="selectByEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
+    <select id="selectByEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select *
     from forum_user
     where binary email = #{email,jdbcType=VARCHAR}
   </select>
-  <select id="selectWordNumberByUserId" parameterType="java.lang.Long" resultType="java.lang.Integer">
-    SELECT floor(SUM(LENGTH(content)/3)) FROM forum_post WHERE user_id =#{userId,jdbcType=BIGINT};
+    <select id="selectWordNumberByUserId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    SELECT IFNULL((SELECT floor(SUM(LENGTH(content)/3)) FROM forum_post WHERE user_id =#{userId,jdbcType=BIGINT} AND visibility=1),0)+IFNULL((SELECT floor(SUM(LENGTH(content)/3)) FROM forum_comment WHERE user_id =#{userId,jdbcType=BIGINT} AND visibility=1),0)+IFNULL((SELECT floor(SUM(LENGTH(content)/3)) FROM forum_reply WHERE user_id =#{userId,jdbcType=BIGINT}),0);
   </select>
-  <select id="getSubscribeId" resultMap="UserVoResultMap">
+    <select id="getSubscribeId" resultMap="UserVoResultMap">
     select distinct u.user_id, u.username, u.email, u.personalized_signature, u.role, u.create_time,
     u.update_time,u.head_sculpture,u.is_ban,u.start_time,u.end_time,u.ban_message
     from forum_subscribe s1 JOIN  forum_subscribe s2
@@ -73,7 +80,7 @@
     ON s1.subscribe = u.user_id
     WHERE s1.is_del = 0 AND s1.be_subscribe = #{userId,jdbcType=BIGINT}
   </select>
-  <select id="getBeSubscribeId" resultMap="UserVoResultMap">
+    <select id="getBeSubscribeId" resultMap="UserVoResultMap">
     select distinct u.user_id, u.username, u.email, u.personalized_signature, u.role, u.create_time,
     u.update_time,u.head_sculpture,u.is_ban,u.start_time,u.end_time,u.ban_message
     from forum_subscribe s1 JOIN  forum_subscribe s2
@@ -82,7 +89,7 @@
     WHERE
     s1.is_del = 0 AND s1.subscribe = #{userId,jdbcType=BIGINT}
   </select>
-  <select id="searchUserByString" resultMap="BaseResultMap">
+    <select id="searchUserByString" resultMap="BaseResultMap">
     select distinct u1.user_id, u1.username, u1.email, u1.personalized_signature, u1.role, u1.create_time,
     u1.update_time,u1.head_sculpture,u1.is_ban,u1.start_time,u1.end_time,u1.ban_message
     from forum_user u1 JOIN  forum_user u2
@@ -90,11 +97,11 @@
     WHERE
     u1.is_ban = 0 AND (u1.username LIKE concat(concat("%",#{content}),"%") or u1.email LIKE concat(concat("%",#{content}),"%"));
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     delete from forum_user
     where user_id = #{userId,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.User">
+    <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.User">
     insert into forum_user (user_id, username, `password`, 
       email, personalized_signature, `role`,
       create_time, update_time)
@@ -102,125 +109,125 @@
       #{email,jdbcType=VARCHAR}, #{personalizedSignature,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER},
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.User">
-    insert into forum_user
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="userId != null">
-        user_id,
-      </if>
-      <if test="username != null">
-        username,
-      </if>
-      <if test="password != null">
-        `password`,
-      </if>
-      <if test="email != null">
-        email,
-      </if>
-      <if test="personalizedSignature != null">
-        personalized_signature,
-      </if>
-      <if test="role != null">
-        `role`,
-      </if>
-      <if test="createTime != null">
-        create_time,
-      </if>
-      <if test="updateTime != null">
-        update_time,
-      </if>
-      <if test="headSculpture != null">
-        `head_sculpture`,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="userId != null">
-        #{userId,jdbcType=BIGINT},
-      </if>
-      <if test="username != null">
-        #{username,jdbcType=VARCHAR},
-      </if>
-      <if test="password != null">
-        #{password,jdbcType=VARCHAR},
-      </if>
-      <if test="email != null">
-        #{email,jdbcType=VARCHAR},
-      </if>
-      <if test="personalizedSignature != null">
-        #{personalizedSignature,jdbcType=VARCHAR},
-      </if>
-      <if test="role != null">
-        #{role,jdbcType=INTEGER},
-      </if>
-      <if test="createTime != null">
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null">
-        #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="headSculpture != null">
-        #{headSculpture,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.User">
-    update forum_user
-    <set>
-      <if test="username != null">
-        username = #{username,jdbcType=VARCHAR},
-      </if>
-      <if test="password != null">
-        `password` = #{password,jdbcType=VARCHAR},
-      </if>
-      <if test="email != null">
-        email = #{email,jdbcType=VARCHAR},
-      </if>
-      <if test="personalizedSignature != null">
-        personalized_signature = #{personalizedSignature,jdbcType=VARCHAR},
-      </if>
-      <if test="role != null">
-        `role` = #{role,jdbcType=INTEGER},
-      </if>
-      <if test="createTime != null">
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null">
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="headSculpture != null">
-        `head_sculpture` = #{headSculpture,jdbcType=VARCHAR},
-      </if>
-      <if test="isBan != null">
-        `is_ban` = #{isBan,jdbcType=INTEGER},
-      </if>
-      <if test="startTime != null">
-        start_time = #{startTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="endTime != null">
-        end_time = #{endTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="banMessage != null">
-        `ban_message` = #{banMessage,jdbcType=VARCHAR},
-      </if>
-      <if test="school != null">
-        `school` = #{school,jdbcType=VARCHAR},
-      </if>
-      <if test="sex != null">
-        `sex` = #{sex,jdbcType=INTEGER},
-      </if>
-      <if test="personalWebsite != null">
-        `personal_website` = #{personalWebsite,jdbcType=VARCHAR},
-      </if>
-      <if test="wechat != null">
-        `wechat` = #{wechat,jdbcType=VARCHAR},
-      </if>
-      <if test="qq != null">
-        `qq` = #{qq,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where user_id = #{userId,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.User">
+    <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.User">
+        insert into forum_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="username != null">
+                username,
+            </if>
+            <if test="password != null">
+                `password`,
+            </if>
+            <if test="email != null">
+                email,
+            </if>
+            <if test="personalizedSignature != null">
+                personalized_signature,
+            </if>
+            <if test="role != null">
+                `role`,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="headSculpture != null">
+                `head_sculpture`,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="username != null">
+                #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="personalizedSignature != null">
+                #{personalizedSignature,jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                #{role,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="headSculpture != null">
+                #{headSculpture,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.User">
+        update forum_user
+        <set>
+            <if test="username != null">
+                username = #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                `password` = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="personalizedSignature != null">
+                personalized_signature = #{personalizedSignature,jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                `role` = #{role,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="headSculpture != null">
+                `head_sculpture` = #{headSculpture,jdbcType=VARCHAR},
+            </if>
+            <if test="isBan != null">
+                `is_ban` = #{isBan,jdbcType=INTEGER},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="banMessage != null">
+                `ban_message` = #{banMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="school != null">
+                `school` = #{school,jdbcType=VARCHAR},
+            </if>
+            <if test="sex != null">
+                `sex` = #{sex,jdbcType=INTEGER},
+            </if>
+            <if test="personalWebsite != null">
+                `personal_website` = #{personalWebsite,jdbcType=VARCHAR},
+            </if>
+            <if test="wechat != null">
+                `wechat` = #{wechat,jdbcType=VARCHAR},
+            </if>
+            <if test="qq != null">
+                `qq` = #{qq,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where user_id = #{userId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.User">
     update forum_user
     set username = #{username,jdbcType=VARCHAR},
       `password` = #{password,jdbcType=VARCHAR},
@@ -232,4 +239,10 @@
        `head_sculpture` = #{headSculpture,jdbcType=VARCHAR}
     where user_id = #{userId,jdbcType=BIGINT}
   </update>
+    <select id="selectUserRankId" resultMap="rankMap">
+    SELECT user_id,COUNT(user_id) AS count
+    FROM forum_post
+    WHERE visibility=1
+    GROUP BY user_id ORDER BY count DESC LIMIT 0,30;
+    </select>
 </mapper>

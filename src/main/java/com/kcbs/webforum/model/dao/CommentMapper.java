@@ -25,4 +25,6 @@ public interface CommentMapper {
     List<CommentVo> selectByParentId(Long postId);
 
     List<CommentVo> selectByUserId(Long userId);
+
+    long selectLastId();
 }

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kcbs.webforum.model.dao.ReplyMapper">
+  <resultMap id="BaseResultMap" type="com.kcbs.webforum.model.pojo.Reply">
+    <id column="reply_id" jdbcType="BIGINT" property="replyId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="comment_id" jdbcType="BIGINT" property="commentId" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="reply_time" jdbcType="TIMESTAMP" property="replyTime" />
+  </resultMap>
+  <resultMap id="ReplyResultMap" type="com.kcbs.webforum.model.vo.ReplyVO">
+    <id column="reply_id" jdbcType="BIGINT" property="replyId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="comment_id" jdbcType="BIGINT" property="commentId" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="comment_content" jdbcType="VARCHAR" property="commentContent" />
+    <result column="comment_username" jdbcType="VARCHAR" property="commentUserName" />
+    <result column="post_id" jdbcType="BIGINT" property="postId" />
+    <result column="title" jdbcType="VARCHAR" property="postName" />
+    <result column="head_sculpture" jdbcType="VARCHAR" property="headSculpture" />
+    <result column="reply_time" jdbcType="TIMESTAMP" property="replyTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    reply_id, user_id, comment_id, content, reply_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from forum_reply
+    where reply_id = #{replyId,jdbcType=BIGINT}
+  </select>
+  <select id="getNumByCommentId" parameterType="java.lang.Long" resultType="integer">
+    select COUNT(*)
+    from forum_reply
+    where comment_id = #{commentId,jdbcType=BIGINT}
+  </select>
+  <select id="selectByCommentId" parameterType="java.lang.Long" resultMap="ReplyResultMap">
+    select distinct r.reply_id,r.user_id,r.comment_id,r.content,r.reply_time,u.username,u.head_sculpture
+    from forum_reply r JOIN forum_comment c
+    ON r.comment_id = c.comment_id JOIN forum_user u
+    ON r.user_id = u.user_id
+    where c.comment_id = #{commentId,jdbcType=BIGINT}
+  </select>
+  <select id="selectReplyByUser" parameterType="java.lang.Long" resultMap="ReplyResultMap">
+    select distinct r.reply_id,r.user_id,r.comment_id,r.content,r.reply_time,u.username,u.head_sculpture,u2.username as comment_username,c.content as comment_content,p.post_id,p.title
+    from forum_reply r JOIN forum_comment c
+    ON r.comment_id = c.comment_id JOIN forum_user u
+    ON r.user_id = u.user_id JOIN forum_user u2
+    ON c.user_id = u2.user_id JOIN forum_post p
+    ON c.parent_id = p.post_id
+    where r.user_id = #{userId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from forum_reply
+    where reply_id = #{replyId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.kcbs.webforum.model.pojo.Reply">
+    insert into forum_reply (reply_id, user_id, comment_id, 
+      content, reply_time)
+    values (#{replyId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{commentId,jdbcType=BIGINT}, 
+      #{content,jdbcType=VARCHAR}, #{replyTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.kcbs.webforum.model.pojo.Reply">
+    insert into forum_reply
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="replyId != null">
+        reply_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="commentId != null">
+        comment_id,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="replyTime != null">
+        reply_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="replyId != null">
+        #{replyId,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="commentId != null">
+        #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="replyTime != null">
+        #{replyTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.kcbs.webforum.model.pojo.Reply">
+    update forum_reply
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="commentId != null">
+        comment_id = #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="replyTime != null">
+        reply_time = #{replyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where reply_id = #{replyId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.kcbs.webforum.model.pojo.Reply">
+    update forum_reply
+    set user_id = #{userId,jdbcType=BIGINT},
+      comment_id = #{commentId,jdbcType=BIGINT},
+      content = #{content,jdbcType=VARCHAR},
+      reply_time = #{replyTime,jdbcType=TIMESTAMP}
+    where reply_id = #{replyId,jdbcType=BIGINT}
+  </update>
+</mapper>

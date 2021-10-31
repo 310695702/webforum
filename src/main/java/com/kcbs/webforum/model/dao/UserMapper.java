@@ -1,6 +1,7 @@
 package com.kcbs.webforum.model.dao;
 
 import com.kcbs.webforum.model.pojo.User;
+import com.kcbs.webforum.model.vo.URank;
 import com.kcbs.webforum.model.vo.UserVo;
 
 import java.util.List;
@@ -29,4 +30,7 @@ public interface UserMapper {
     List<User> searchUserByString(String content);
 
     Integer selectWordNumberByUserId(Long userId);
+
+    List<URank> selectUserRankId();
+
 }

@@ -25,9 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -40,8 +38,12 @@ public class PostServiceImpl implements PostService {
     PostImagesMapper postImagesMapper;
     @Resource
     MsgStateMapper msgStateMapper;
+    @Resource
+    UCSubscribeMapper ucSubscribeMapper;
+    @Resource
+    GoodMapper goodMapper;
 
-
+    //发帖
     @Override
     public void post(PostReq postReq, HttpServletRequest request, List<String> urls) throws WebforumException {
         //获取用户信息
@@ -50,7 +52,7 @@ public class PostServiceImpl implements PostService {
         Post result = postMapper.selectByTitle(postReq.getTitle());
         //判断是否存在相同标题内容，如果已存在抛出异常
         if (result!=null){
-            if (result.getUserId()==user.getUserId()){
+            if (result.getUserId()==user.getUserId()&&result.getCategoryId()==postReq.getCategoryId()){
                 throw new WebforumException(WebforumExceptionEnum.TITLE_EXISTED);
             }
         }
@@ -89,8 +91,12 @@ public class PostServiceImpl implements PostService {
                 }
             }
         }
+        //加经验
+        ucSubscribeMapper.post(user.getUserId(),postReq.getCategoryId());
     }
 
+
+    //删除帖子
     @Override
     public void deletepost(List<Long> postId,HttpServletRequest request) throws WebforumException {
         ApiRestResponse res = JwtUtils.checkToken(request);
@@ -147,18 +153,23 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    //@Cacheable(value = "selectByUserId")
     public ApiRestResponse selectByUserId(Integer pageNum, Integer pageSize, Long userId,HttpServletRequest request) throws WebforumException {
         Long id = checkpageNumAndpageSize(pageNum, pageSize, userId, request);
         PageHelper.startPage(pageNum,pageSize,"update_time desc");
         List<PostVO> posts = postMapper.selectByUserId(id);
         for (PostVO postVO :posts){
             postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+            Good good = goodMapper.selectByPostId(postVO.getPostId());
+            if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                postVO.setGoodNum(list.size());}
         }
         PageInfo pageInfo = new PageInfo(posts);
         return ApiRestResponse.success(pageInfo);
     }
 
     @Override
+    //@Cacheable(value = "getSubscribePost")
     public PageInfo getSubscribePost(Integer pageNum, Integer pageSize, HttpServletRequest request) throws WebforumException {
         if (pageNum==null||pageSize==null){
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
@@ -167,6 +178,9 @@ public class PostServiceImpl implements PostService {
         List<PostVO> postVOS = postMapper.selectSubscribePostList(JwtUtils.getUser(request).getUserId());
         for (PostVO postVO : postVOS){
             postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+            Good good = goodMapper.selectByPostId(postVO.getPostId());
+            if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                postVO.setGoodNum(list.size());}
         }
         PageInfo pageInfo = new PageInfo(postVOS);
         return pageInfo;
@@ -194,7 +208,15 @@ public class PostServiceImpl implements PostService {
         if (postVO==null){
             throw new WebforumException(WebforumExceptionEnum.POST_EXISTED);
         }
+        Post post = new Post();
+        post.setPostId(postVO.getPostId());
+        post.setViewNum(postVO.getViewNum()+1);
+        post.setUpdateTime(postVO.getUpdateTime());
+        postMapper.updateByPrimaryKeySelective(post);
         postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+        Good good = goodMapper.selectByPostId(postVO.getPostId());
+        if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+        postVO.setGoodNum(list.size());}
         return ApiRestResponse.success(postVO);
     }
 
@@ -216,20 +238,17 @@ public class PostServiceImpl implements PostService {
             if (jedis.exists(JwtUtils.getUser(request).getUserId()+"images")) {
                 List<String> jsonObject = JSONObject.parseArray(jedis.get(JwtUtils.getUser(request).getUserId() + "images"),String.class);
                 for (String s:jsonObject){
-                    File file2 = new File(Constant.IMAGE_UPLOAD_DIR+s.substring(s.lastIndexOf("/")));
-                    boolean b = file2.delete();
-                    if (!b){
-                        return ApiRestResponse.error(WebforumExceptionEnum.UPLOAD_FAILED);
-                    }
+                    File file2 = new File(Constant.POSTIMAGE_UPLOAD_DIR +s.substring(s.lastIndexOf("/")));
+                    file2.delete();
                 }
                 jedis.del(JwtUtils.getUser(request).getUserId()+"images");
             }
             for (MultipartFile multipartFile:images){
                 String newFileName = UserServiceImpl.createFileName(multipartFile);
                 //创建文件夹
-                File fileDirectory = new File(Constant.IMAGE_UPLOAD_DIR);
+                File fileDirectory = new File(Constant.POSTIMAGE_UPLOAD_DIR);
                 //目标文件
-                File destFile = new File(Constant.IMAGE_UPLOAD_DIR + newFileName);
+                File destFile = new File(Constant.POSTIMAGE_UPLOAD_DIR + newFileName);
                 UserServiceImpl.addFile(multipartFile,fileDirectory,destFile);
                 try {
                     String path = UserServiceImpl.getHost(new URI(request.getRequestURL() + "")) + "/PostImages/" + newFileName;
@@ -248,7 +267,6 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-
     }
 
     @Override
@@ -257,6 +275,9 @@ public class PostServiceImpl implements PostService {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
         Post post = postMapper.selectByPrimaryKey(postId);
+        if (post==null){
+            throw new WebforumException(WebforumExceptionEnum.POST_EXISTED);
+        }
         if (post.getIsEssences()==type){
             if (type==0){
                 throw new WebforumException(WebforumExceptionEnum.CANCEL_ESSENCES_ERROR);
@@ -278,6 +299,43 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    //随机获取帖子
+    @Override
+    public ApiRestResponse selectRandomPost() {
+        List<Long> postIds = postMapper.getAllPostId();
+        List<PostVO> list = new ArrayList<>();
+        if (postIds.size()<10){
+            for (Long l:postIds){
+                list.add(postMapper.selectById(l));
+            }
+            for (PostVO postVO : list){
+                postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                Good good = goodMapper.selectByPostId(postVO.getPostId());
+                if(good!=null){List<String> users = JSONObject.parseArray(good.getUsers(), String.class);
+                    postVO.setGoodNum(users.size());}
+            }
+            return ApiRestResponse.success(list);
+        }
+        Random random = new Random();
+        Set<Integer> ids = new HashSet<>();
+        while (ids.size()<10){
+            ids.add(random.nextInt(postIds.size()));
+        }
+        Iterator<Integer> iterator = ids.iterator();
+        while (iterator.hasNext()){
+            list.add(postMapper.selectById(postIds.get(iterator.next())));
+        }
+        for (PostVO postVO : list){
+            postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+            Good good = goodMapper.selectByPostId(postVO.getPostId());
+            if(good!=null){List<String> users = JSONObject.parseArray(good.getUsers(), String.class);
+                postVO.setGoodNum(users.size());}
+        }
+        return ApiRestResponse.success(list);
+    }
+
+
+    //检测分页参数
     public static Long checkpageNumAndpageSize(Integer pageNum, Integer pageSize, Long userId, HttpServletRequest request) throws WebforumException {
         if (pageNum==null||pageSize==null){
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);

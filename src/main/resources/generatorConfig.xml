@@ -86,7 +86,17 @@
            <!--enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false"-->
            <!--selectByExampleQueryId="false">-->
     <!--</table>-->
-    <table tableName="forum_msg_state" domainObjectName="MsgState"
+    <!--<table tableName="forum_banner" domainObjectName="Banner"-->
+           <!--enableCountByExample="false"-->
+           <!--enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false"-->
+           <!--selectByExampleQueryId="false">-->
+    <!--</table>-->
+    <!--<table tableName="forum_reply" domainObjectName="Reply"-->
+           <!--enableCountByExample="false"-->
+           <!--enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false"-->
+           <!--selectByExampleQueryId="false">-->
+    <!--</table>-->
+    <table tableName="forum_good" domainObjectName="Good"
            enableCountByExample="false"
            enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false"
            selectByExampleQueryId="false">

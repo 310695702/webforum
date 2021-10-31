@@ -1,6 +1,8 @@
 package com.kcbs.webforum.model.vo;
 
-public class CategoryVO {
+import java.io.Serializable;
+
+public class CategoryVO implements Serializable {
     private Long categoryId;
 
     private String categoryName;
@@ -12,6 +14,36 @@ public class CategoryVO {
     private Integer postNum;
 
     private int visibility;
+
+    private int isSign;
+
+    private int exp;
+
+    private int signDays;
+
+    public int getSignDays() {
+        return signDays;
+    }
+
+    public void setSignDays(int signDays) {
+        this.signDays = signDays;
+    }
+
+    public int getExp() {
+        return exp;
+    }
+
+    public void setExp(int exp) {
+        this.exp = exp;
+    }
+
+    public int getIsSign() {
+        return isSign;
+    }
+
+    public void setIsSign(int isSign) {
+        this.isSign = isSign;
+    }
 
     public int getVisibility() {
         return visibility;
@@ -70,6 +102,9 @@ public class CategoryVO {
                 ", isRecommend=" + isRecommend +
                 ", postNum=" + postNum +
                 ", visibility=" + visibility +
+                ", isSign=" + isSign +
+                ", exp=" + exp +
+                ", signDays=" + signDays +
                 '}';
     }
 }

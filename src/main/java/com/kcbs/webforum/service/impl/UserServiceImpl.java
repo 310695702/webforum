@@ -7,15 +7,12 @@ import com.kcbs.webforum.common.ApiRestResponse;
 import com.kcbs.webforum.common.Constant;
 import com.kcbs.webforum.exception.WebforumException;
 import com.kcbs.webforum.exception.WebforumExceptionEnum;
-import com.kcbs.webforum.model.dao.CategoryMapper;
-import com.kcbs.webforum.model.dao.SubscribeMapper;
-import com.kcbs.webforum.model.dao.UCSubscribeMapper;
-import com.kcbs.webforum.model.dao.UserMapper;
-import com.kcbs.webforum.model.pojo.Category;
-import com.kcbs.webforum.model.pojo.UCSubscribe;
-import com.kcbs.webforum.model.pojo.User;
+import com.kcbs.webforum.model.dao.*;
+import com.kcbs.webforum.model.pojo.*;
 import com.kcbs.webforum.model.request.UserInfoReq;
 import com.kcbs.webforum.model.vo.CategoryVO;
+import com.kcbs.webforum.model.vo.URank;
+import com.kcbs.webforum.model.vo.UserRankVO;
 import com.kcbs.webforum.model.vo.UserVo;
 import com.kcbs.webforum.service.SendMailService;
 import com.kcbs.webforum.service.UserService;
@@ -24,10 +21,10 @@ import com.kcbs.webforum.utils.JwtUtils;
 import com.kcbs.webforum.utils.MD5Util;
 import com.kcbs.webforum.utils.TimeUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.multipart.MultipartFile;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -39,10 +36,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -57,24 +51,28 @@ public class UserServiceImpl implements UserService {
     CategoryMapper categoryMapper;
     @Resource
     SubscribeMapper subscribeMapper;
+    @Resource
+    GoodMapper goodMapper;
+    @Resource
+    PostMapper postMapper;
 
     //注册
     @Override
-    public void register(String username, String password,String veriftcode) throws WebforumException {
+    public void register(String username, String password, String veriftcode) throws WebforumException {
         if (password.length() < 8) {
             throw new WebforumException(WebforumExceptionEnum.PASSWORD_TOO_SHORT);
         }
-        if (StringUtils.isEmpty(veriftcode)){
+        if (StringUtils.isEmpty(veriftcode)) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
-        if (userMapper.selectByName(username)!=null){
+        if (userMapper.selectByName(username) != null) {
             throw new WebforumException(WebforumExceptionEnum.NAME_EXISTED);
         }
-        Jedis jedis = new Jedis(Constant.HOST,Constant.PORT);
+        Jedis jedis = new Jedis(Constant.HOST, Constant.PORT);
         try {
             jedis.select(1);
             String code = jedis.get(username);
-            if (!veriftcode.equals(code)){
+            if (!veriftcode.equals(code)) {
                 throw new WebforumException(WebforumExceptionEnum.WRONG_CODE);
             }
             jedis.select(2);
@@ -83,16 +81,15 @@ public class UserServiceImpl implements UserService {
             user.setEmail(jedis.get(username));
             user.setPassword(MD5Util.getMd5Str(password));
             int count = userMapper.insertSelective(user);
-            if (count!=1){
+            if (count != 1) {
                 throw new WebforumException(WebforumExceptionEnum.INSERT_FAILED);
             }
             jedis.del(username);
             jedis.select(1);
             jedis.del(username);
-        }catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             jedis.select(0);
             jedis.close();
         }
@@ -101,37 +98,37 @@ public class UserServiceImpl implements UserService {
 
     //获取验证码
     @Override
-    public void getCode(String username,String email) throws WebforumException {
+    public void getCode(String username, String email) throws WebforumException {
         if (StringUtils.isEmpty(email)) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
-        if (StringUtils.isEmpty(username)){
+        if (StringUtils.isEmpty(username)) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
-        if (userMapper.selectByEmail(email)!=null){
+        if (userMapper.selectByEmail(email) != null) {
             throw new WebforumException(WebforumExceptionEnum.EMAIL_EXISTED);
         }
-        if (userMapper.selectByName(username)!=null){
+        if (userMapper.selectByName(username) != null) {
             throw new WebforumException(WebforumExceptionEnum.NAME_EXISTED);
         }
-        String code = String.valueOf(Math.random()).substring(2,8);
-        Jedis jedis = new Jedis(Constant.HOST,Constant.PORT);
+        String code = String.valueOf(Math.random()).substring(2, 8);
+        Jedis jedis = new Jedis(Constant.HOST, Constant.PORT);
         try {
-         jedis.select(1);
-         jedis.set(username, code);
-         jedis.expire(username,300);
-         jedis.select(2);
-         jedis.set(username,email);
-         jedis.expire(username,300);
-         boolean b = sendMailService.sendMail(email, Constant.SUBJECT, Constant.CONTENT1 + code + Constant.CONTENT2);
-         if (!b){
-             jedis.select(1);
-             jedis.del(username);
-             jedis.select(2);
-             jedis.del(username);
-             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
-         }
-        }finally {
+            jedis.select(1);
+            jedis.set(username, code);
+            jedis.expire(username, 300);
+            jedis.select(2);
+            jedis.set(username, email);
+            jedis.expire(username, 300);
+            boolean b = sendMailService.sendMail(email, Constant.SUBJECT, Constant.CONTENT1 + code + Constant.CONTENT2);
+            if (!b) {
+                jedis.select(1);
+                jedis.del(username);
+                jedis.select(2);
+                jedis.del(username);
+                throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
+            }
+        } finally {
             jedis.select(0);
             jedis.close();
         }
@@ -141,27 +138,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiRestResponse login(String username, String password, HttpServletRequest request) throws WebforumException {
         User result = getUser(username, password);
+        System.out.println(result);
         result.setPassword(null);
         Jedis jedis = null;
         try {
-        jedis = new Jedis(Constant.HOST,Constant.PORT);
-        //根据id获取内存中的token
-        if (!jedis.exists(String.valueOf(result.getUserId()))){
-            String token = JwtUtils.getJwtToken(String.valueOf(result.getUserId()),username);
-            String json = JSONObject.toJSONString(ApiRestResponse.success(result));
-                jedis.set(token,json);
-                jedis.set(String.valueOf(result.getUserId()),token);
+            jedis = new Jedis(Constant.HOST, Constant.PORT);
+            //根据id获取内存中的token
+            if (!jedis.exists(String.valueOf(result.getUserId()))) {
+                String token = JwtUtils.getJwtToken(String.valueOf(result.getUserId()), username);
+                String json = JSONObject.toJSONString(ApiRestResponse.success(result));
+                jedis.set(token, json);
+                jedis.set(String.valueOf(result.getUserId()), token);
                 jedis.expire(token, Constant.TIME);
-                jedis.expire(String.valueOf(result.getUserId()),Constant.TIME);
-            return ApiRestResponse.success(token);
-        }
-        return ApiRestResponse.success(jedis.get(String.valueOf(result.getUserId())));
-        }catch (JedisConnectionException e){
+                jedis.expire(String.valueOf(result.getUserId()), Constant.TIME);
+                return ApiRestResponse.success(token);
+            }
+            return ApiRestResponse.success(jedis.get(String.valueOf(result.getUserId())));
+        } catch (JedisConnectionException e) {
             e.printStackTrace();
             throw new WebforumException(WebforumExceptionEnum.JEDIS_FAILED);
-        }
-        finally {
-            if (jedis!=null){
+        } finally {
+            if (jedis != null) {
                 jedis.close();
             }
         }
@@ -169,8 +166,8 @@ public class UserServiceImpl implements UserService {
 
     //更新签名
     @Override
-    public void updatepersonalizedSignature(String personalizedSignature, HttpServletRequest request) throws WebforumException{
-        if (StringUtils.isEmpty(personalizedSignature)){
+    public void updatepersonalizedSignature(String personalizedSignature, HttpServletRequest request) throws WebforumException {
+        if (StringUtils.isEmpty(personalizedSignature)) {
             throw new WebforumException(WebforumExceptionEnum.NEED_CONTENT);
         }
         ApiRestResponse res = JwtUtils.checkToken(request);
@@ -184,26 +181,26 @@ public class UserServiceImpl implements UserService {
 
     //管理员登录
     @Override
-    public ApiRestResponse adminlogin(String username, String password,HttpServletRequest request) throws WebforumException {
+    public ApiRestResponse adminlogin(String username, String password, HttpServletRequest request) throws WebforumException {
         User result = getUser(username, password);
         result.setPassword(null);
-        if (result.getRole()==1){
+        if (result.getRole() == 1) {
             throw new WebforumException(WebforumExceptionEnum.NEED_ADMIN);
         }
-        Jedis jedis = new Jedis(Constant.HOST,Constant.PORT);
+        Jedis jedis = new Jedis(Constant.HOST, Constant.PORT);
         //根据id获取内存中的token
         String resulttoken = jedis.get(String.valueOf(result.getUserId()));
-        if (resulttoken==null||resulttoken.equals("")){
-            String token = JwtUtils.getJwtToken(String.valueOf(result.getUserId()),username);
+        if (resulttoken == null || resulttoken.equals("")) {
+            String token = JwtUtils.getJwtToken(String.valueOf(result.getUserId()), username);
             String json = JSONObject.toJSONString(ApiRestResponse.success(result));
             try {
-                jedis.set(token,json);
-                jedis.set(String.valueOf(result.getUserId()),token);
+                jedis.set(token, json);
+                jedis.set(String.valueOf(result.getUserId()), token);
                 jedis.expire(token, Constant.TIME);
-                jedis.expire(String.valueOf(result.getUserId()),Constant.TIME);
-            }catch (Exception e){
+                jedis.expire(String.valueOf(result.getUserId()), Constant.TIME);
+            } catch (Exception e) {
                 return ApiRestResponse.error(WebforumExceptionEnum.LOGIN_FAILED);
-            }finally {
+            } finally {
                 jedis.close();
             }
             return ApiRestResponse.success(token);
@@ -225,12 +222,9 @@ public class UserServiceImpl implements UserService {
         addFile(file, fileDirectory, destFile);
         try {
             String fromuser = user.getHeadSculpture();
-            if (!StringUtils.isEmpty(fromuser)&&!user.getHeadSculpture().equals("http://47.111.9.152:8088/images/morentouxiang.png")) {
-                File file2 = new File(Constant.FILE_UPLOAD_DIR+fromuser.substring(fromuser.lastIndexOf("/")));
-                boolean b = file2.delete();
-                if (!b){
-                    return ApiRestResponse.error(WebforumExceptionEnum.UPLOAD_FAILED);
-                }
+            if (!StringUtils.isEmpty(fromuser) && !user.getHeadSculpture().equals("http://47.111.9.152:80/images/morentouxiang.png")) {
+                File file2 = new File(Constant.FILE_UPLOAD_DIR + fromuser.substring(fromuser.lastIndexOf("/")));
+                file2.delete();
             }
             String path = getHost(new URI(request.getRequestURL() + "")) + "/images/" + newFileName;
             user.setHeadSculpture(path);
@@ -245,15 +239,17 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     *
-     * @param file MultipartFile
+     * @param file          MultipartFile
      * @param fileDirectory 目标文件夹
-     * @param destFile 目标文件 文件夹名+文件名
+     * @param destFile      目标文件 文件夹名+文件名
      * @throws WebforumException
      */
     public static void addFile(MultipartFile file, File fileDirectory, File destFile) throws WebforumException {
+        //判断文件目录是否存在
         if (!fileDirectory.exists()) {
+            //如果不存在，就创建
             if (!fileDirectory.mkdir()) {
+                //创建失败，抛出异常
                 throw new WebforumException(WebforumExceptionEnum.MKDIR_FAILED);
             }
         }
@@ -274,15 +270,16 @@ public class UserServiceImpl implements UserService {
 
     //获取用户粉丝列表
     @Override
-    public ApiRestResponse getFuns(HttpServletRequest request, Long beSubscribe, Integer pageNum, Integer pageSize)throws WebforumException{
+    //@Cacheable(value = "getFuns")
+    public ApiRestResponse getFuns(HttpServletRequest request, Long beSubscribe, Integer pageNum, Integer pageSize) throws WebforumException {
         Long userid = PostServiceImpl.checkpageNumAndpageSize(pageNum, pageSize, beSubscribe, request);
-        PageHelper.startPage(pageNum,pageSize);
+        PageHelper.startPage(pageNum, pageSize);
         List<UserVo> subscribe = userMapper.getSubscribeId(userid);
-        for (UserVo user:subscribe){
+        for (UserVo user : subscribe) {
             user.setSubscribeStatus(0);
-            if (subscribeMapper.checkSubscribeById(user.getUserId(),userid)==1) {
-                 user.setSubscribeStatus(2);
-             }
+            if (subscribeMapper.checkSubscribeById(user.getUserId(), userid) == 1) {
+                user.setSubscribeStatus(2);
+            }
         }
         PageInfo pageInfo = new PageInfo(subscribe);
         return ApiRestResponse.success(pageInfo);
@@ -316,25 +313,25 @@ public class UserServiceImpl implements UserService {
     //获取用户方法
     private User getUser(String username, String password) throws WebforumException {
         User result = null;
-        result= userMapper.selectByName(username);
+        result = userMapper.selectByName(username);
         if (result == null) {
             result = userMapper.selectByEmail(username);
-            if (result==null){
+            if (result == null) {
                 throw new WebforumException(WebforumExceptionEnum.WRONG_USERNAME);
             }
         }
-        if (result.getIsBan()==1){
-            if (result.getEndTime()!=null&&result.getEndTime().getTime()>System.currentTimeMillis()){
-                throw new WebforumException(10027,"该用户因:\""+result.getBanMessage()+"\"已被管理员于\""+TimeUtils.stampToDate(result.getStartTime().getTime())+"\"封禁，将于\""+ TimeUtils.stampToDate(result.getEndTime().getTime())+"\"解封,有问题请联系QQ:310695702");
+        if (result.getIsBan() == 1) {
+            if (result.getEndTime() != null && result.getEndTime().getTime() > System.currentTimeMillis()) {
+                throw new WebforumException(10027, "该用户因:\"" + result.getBanMessage() + "\"已被管理员于\"" + TimeUtils.stampToDate(result.getStartTime().getTime()) + "\"封禁，将于\"" + TimeUtils.stampToDate(result.getEndTime().getTime()) + "\"解封,有问题请联系QQ:310695702");
             }
             result.setIsBan(0);
             userMapper.updateByPrimaryKeySelective(result);
         }
         Jedis jedis = null;
         try {
-            jedis = new Jedis(Constant.HOST,Constant.PORT);
+            jedis = new Jedis(Constant.HOST, Constant.PORT);
             jedis.select(1);
-            if (jedis.exists(result.getUsername())&&(jedis.get(result.getUsername()).equals(password)||result.getPassword().equals(MD5Util.getMd5Str(password)))) {
+            if (jedis.exists(result.getUsername()) && (jedis.get(result.getUsername()).equals(password) || result.getPassword().equals(MD5Util.getMd5Str(password)))) {
                 return result;
             }
             if (!result.getPassword().equals(MD5Util.getMd5Str(password))) {
@@ -342,8 +339,8 @@ public class UserServiceImpl implements UserService {
             }
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-        }finally {
-            if (jedis!=null){
+        } finally {
+            if (jedis != null) {
                 jedis.select(0);
                 jedis.close();
             }
@@ -353,16 +350,16 @@ public class UserServiceImpl implements UserService {
 
     //更新用户方法
     public void updateUser(User user) throws WebforumException {
-        Jedis jedis = new Jedis(Constant.HOST,Constant.PORT);
+        Jedis jedis = new Jedis(Constant.HOST, Constant.PORT);
         String token = jedis.get(String.valueOf(user.getUserId()));
         String json = JSONObject.toJSONString(ApiRestResponse.success(user));
         try {
-            jedis.set(token,json);
+            jedis.set(token, json);
             jedis.expire(token, Constant.TIME);
-            jedis.expire(String.valueOf(user.getUserId()),Constant.TIME);
-        }catch (Exception e){
+            jedis.expire(String.valueOf(user.getUserId()), Constant.TIME);
+        } catch (Exception e) {
             throw new WebforumException(WebforumExceptionEnum.LOGIN_EXPIRED);
-        }finally {
+        } finally {
             jedis.close();
         }
 
@@ -370,8 +367,8 @@ public class UserServiceImpl implements UserService {
 
     //检查管理员权限方法
     @Override
-    public Boolean checkAdminRole(User currentUser){
-        if (currentUser.getRole()==1){
+    public Boolean checkAdminRole(User currentUser) {
+        if (currentUser.getRole() == 1) {
             return false;
         }
         return true;
@@ -383,9 +380,9 @@ public class UserServiceImpl implements UserService {
         User user = JwtUtils.getUser(request);
         List<Category> categoryList = ucSubscribeMapper.getCategoryByUserId(user.getUserId());
         List<CategoryVO> categoryVOS = new ArrayList<>();
-        for (Category category:categoryList){
+        for (Category category : categoryList) {
             CategoryVO categoryVO = new CategoryVO();
-            BeanUtils.copyProperties(category,categoryVO);
+            BeanUtils.copyProperties(category, categoryVO);
             categoryVO.setPostNum(categoryMapper.selectPostNum(categoryVO.getCategoryId()));
             categoryVOS.add(categoryVO);
         }
@@ -395,15 +392,15 @@ public class UserServiceImpl implements UserService {
     //关注分类
     @Override
     public ApiRestResponse SubscribeCategory(HttpServletRequest request, Long categoryId) throws WebforumException {
-        if (categoryId==null){
+        if (categoryId == null) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
         User user = JwtUtils.getUser(request);
         List<UCSubscribe> ucSubscribeList = ucSubscribeMapper.selectByUCID(user.getUserId(), categoryId);
-        if (ucSubscribeList.size()==1){
+        if (ucSubscribeList.size() == 1) {
             ucSubscribeList.get(0).setIsDel((byte) 0);
             int i = ucSubscribeMapper.updateByPrimaryKey(ucSubscribeList.get(0));
-            if (i==1){
+            if (i == 1) {
                 return ApiRestResponse.success();
             }
             return ApiRestResponse.error(WebforumExceptionEnum.SUBSCRIBE_FAILED);
@@ -413,7 +410,7 @@ public class UserServiceImpl implements UserService {
         ucSubscribe.setCategoryId(categoryId);
         ucSubscribe.setIsDel((byte) 0);
         int i = ucSubscribeMapper.insertSelective(ucSubscribe);
-        if (i==1){
+        if (i == 1) {
             return ApiRestResponse.success();
         }
         return ApiRestResponse.error(WebforumExceptionEnum.SUBSCRIBE_FAILED);
@@ -423,7 +420,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiRestResponse delSubscribeCategory(HttpServletRequest request, Long categoryId) throws WebforumException {
         List<UCSubscribe> ucSubscribeList = getUcSubscribeList(request, categoryId);
-        if (ucSubscribeList.size()==1) {
+        if (ucSubscribeList.size() == 1) {
             ucSubscribeList.get(0).setIsDel((byte) 1);
             int i = ucSubscribeMapper.updateByPrimaryKeySelective(ucSubscribeList.get(0));
             if (i == 1) {
@@ -435,7 +432,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private List<UCSubscribe> getUcSubscribeList(HttpServletRequest request, Long categoryId) throws WebforumException {
-        if (categoryId==null){
+        if (categoryId == null) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
         User user = JwtUtils.getUser(request);
@@ -444,38 +441,48 @@ public class UserServiceImpl implements UserService {
 
     //通过token获取用户
     @Override
-    public ApiRestResponse getUser(HttpServletRequest request,Long userId) throws WebforumException {
+    public ApiRestResponse getUser(HttpServletRequest request, Long userId,String username) throws WebforumException {
         User user = null;
         UserVo userVo = new UserVo();
-        if (userId!=null){
+        if (userId != null) {
             user = userMapper.selectByPrimaryKey(userId);
+            if (user==null){
+                return ApiRestResponse.success(null);
+            }
             user.setPassword(null);
             try {
-                if (subscribeMapper.checkSubscribeById(user.getUserId(), JwtUtils.getUser(request).getUserId())==1) {
-                    if (subscribeMapper.checkSubscribeById(JwtUtils.getUser(request).getUserId(),user.getUserId())==1){
+                if (subscribeMapper.checkSubscribeById(user.getUserId(), JwtUtils.getUser(request).getUserId()) == 1) {
+                    if (subscribeMapper.checkSubscribeById(JwtUtils.getUser(request).getUserId(), user.getUserId()) == 1) {
                         userVo.setSubscribeStatus(2);
-                    }else {
+                    } else {
                         userVo.setSubscribeStatus(1);
                     }
-                }else {
+                } else {
                     userVo.setSubscribeStatus(0);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 userVo.setSubscribeStatus(-1);
             }
 
-        }else {
+        } else if (!StringUtils.isEmpty(username)){
+            user = userMapper.selectByName(username);
+            if (user!=null){
+                return getUser(request,user.getUserId(),username);
+            }
+            return ApiRestResponse.success(null);
+        }
+        else {
             user = JwtUtils.getUser(request);
             userVo.setSubscribeStatus(1);
         }
-        BeanUtils.copyProperties(user,userVo);
-        if (userMapper.selectWordNumberByUserId(user.getUserId())==null) {
+        BeanUtils.copyProperties(user, userVo);
+
+        if (userMapper.selectWordNumberByUserId(user.getUserId()) == null) {
             userVo.setWordNumber(0);
-        }else {
+        } else {
             userVo.setWordNumber(userMapper.selectWordNumberByUserId(user.getUserId()));
         }
-
-
+        userVo.setExp(ucSubscribeMapper.selectExpByUserId(userVo.getUserId()));
         return ApiRestResponse.success(userVo);
     }
 
@@ -483,11 +490,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiRestResponse getSubscribeList(HttpServletRequest request, Long subscribe, Integer pageNum, Integer pageSize) throws WebforumException {
         Long userid = PostServiceImpl.checkpageNumAndpageSize(pageNum, pageSize, subscribe, request);
-        PageHelper.startPage(pageNum,pageSize);
+        PageHelper.startPage(pageNum, pageSize);
         List<UserVo> subscribeId = userMapper.getBeSubscribeId(userid);
-        for (UserVo user:subscribeId){
+        for (UserVo user : subscribeId) {
             user.setSubscribeStatus(1);
-            if (subscribeMapper.checkSubscribeById(userid,user.getUserId())==1) {
+            if (subscribeMapper.checkSubscribeById(userid, user.getUserId()) == 1) {
                 user.setSubscribeStatus(2);
             }
         }
@@ -503,12 +510,12 @@ public class UserServiceImpl implements UserService {
 
     private Long CheckId(HttpServletRequest request, Long userId) throws WebforumException {
         Long id = null;
-        if (userId!=null){
+        if (userId != null) {
             id = userId;
-        }else {
+        } else {
             id = JwtUtils.getUser(request).getUserId();
         }
-        if (id ==null){
+        if (id == null) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
         return id;
@@ -522,26 +529,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiRestResponse findPassword(String email) throws WebforumException {
-        if (email==null){
-            throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
-        }
-        User user = userMapper.selectByEmail(email);
-        if (user==null){
-            throw new WebforumException(WebforumExceptionEnum.WRONG_USERNAME);
-        }
-        String code = String.valueOf(Math.random()).substring(2,8);
-        Jedis jedis = new Jedis(Constant.HOST,Constant.PORT);
+        User user = goodCheck(email == null, userMapper.selectByEmail(email), WebforumExceptionEnum.WRONG_USERNAME);
+        String code = String.valueOf(Math.random()).substring(2, 8);
+        Jedis jedis = new Jedis(Constant.HOST, Constant.PORT);
         try {
             jedis.select(1);
             jedis.set(user.getUsername(), code);
-            jedis.expire(user.getUsername(),300);
+            jedis.expire(user.getUsername(), 300);
             boolean b = sendMailService.sendMail(email, Constant.SUBJECT, Constant.CONTENT1 + code + Constant.CONTENT2);
-            if (!b){
+            if (!b) {
                 jedis.select(1);
                 jedis.del(user.getUsername());
                 throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
             }
-        }finally {
+        } finally {
             jedis.select(0);
             jedis.close();
         }
@@ -550,18 +551,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ApiRestResponse updatePassword(String password,HttpServletRequest request) throws WebforumException, NoSuchAlgorithmException {
-        if (StringUtils.isEmpty(password)){
+    public ApiRestResponse updatePassword(String password, HttpServletRequest request) throws WebforumException, NoSuchAlgorithmException {
+        if (StringUtils.isEmpty(password)) {
             throw new WebforumException(WebforumExceptionEnum.NEED_PASSWORD);
         }
-        if (password.length()<8){
+        if (password.length() < 8) {
             throw new WebforumException(WebforumExceptionEnum.PASSWORD_TOO_SHORT);
         }
         User user = JwtUtils.getUser(request);
         user.setUpdateTime(null);
         user.setPassword(MD5Util.getMd5Str(password));
         int i = userMapper.updateByPrimaryKeySelective(user);
-        if (i==1){
+        if (i == 1) {
             return ApiRestResponse.success();
         }
         return ApiRestResponse.error(WebforumExceptionEnum.UPDATE_FAILED);
@@ -569,17 +570,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiRestResponse banUserForId(Long userId, Integer banTime, String banMsg) throws WebforumException {
-        return banUser(banTime, banMsg, userId==null, userMapper.selectByPrimaryKey(userId));
+        return banUser(banTime, banMsg, userId == null, userMapper.selectByPrimaryKey(userId));
     }
 
     @Override
     public ApiRestResponse unBanUserForId(Long userId) throws WebforumException {
-        return UnBanUser(userId==null, userMapper.selectByPrimaryKey(userId));
+        return UnBanUser(userId == null, userMapper.selectByPrimaryKey(userId));
     }
 
     @Override
     public ApiRestResponse getUserByAdmin(Long userId) throws WebforumException {
-        if (userId==null){
+        if (userId == null) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
         User user = userMapper.selectByPrimaryKey(userId);
@@ -599,13 +600,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiRestResponse searchUser(Integer pageNum, Integer pageSize, String content) throws WebforumException {
-        if (pageNum==null||pageSize==null){
+        if (pageNum == null || pageSize == null) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
-        if (StringUtils.isEmpty(content)){
+        if (StringUtils.isEmpty(content)) {
             return ApiRestResponse.success(new PageInfo());
         }
-        PageHelper.startPage(pageNum,pageSize,"user_id");
+        PageHelper.startPage(pageNum, pageSize, "user_id");
         List<User> users = userMapper.searchUserByString(content);
         PageInfo pageInfo = new PageInfo(users);
         return ApiRestResponse.success(pageInfo);
@@ -614,24 +615,136 @@ public class UserServiceImpl implements UserService {
     @Override
     public void improveInfo(UserInfoReq userInfo, HttpServletRequest request) throws WebforumException {
         User user = JwtUtils.getUser(request);
-        if (!StringUtils.isEmpty(userInfo.getPersonalWebsite())){
-            user.setPersonalWebsite(userInfo.getPersonalWebsite());
-        }
-        if (!StringUtils.isEmpty(userInfo.getQq())){
-            user.setQq(userInfo.getQq());
-        }
-        if (!StringUtils.isEmpty(userInfo.getWechat())){
-            user.setWechat(userInfo.getWechat());
-        }
-        if (!StringUtils.isEmpty(userInfo.getSchool())){
-            user.setSchool(userInfo.getSchool());
-        }
+        user.setPersonalWebsite(userInfo.getPersonalWebsite());
+        user.setQq(userInfo.getQq());
+        user.setWechat(userInfo.getWechat());
+        user.setSchool(userInfo.getSchool());
         user.setSex(userInfo.getSex());
         int i = userMapper.updateByPrimaryKeySelective(user);
-        if (i!=1){
+        if (i != 1) {
             throw new WebforumException(WebforumExceptionEnum.UPDATEINFO_FAILED);
         }
-        JedisUtil.updateUsertoRedis(user,userMapper);
+        JedisUtil.updateUsertoRedis(user, userMapper);
+    }
+
+    //获取用户排名信息
+    @Override
+    public ApiRestResponse getUserRank() {
+        List<URank> ids = userMapper.selectUserRankId();
+        List<UserRankVO> users = new ArrayList<>();
+        for (URank u:ids){
+            UserRankVO user = new UserRankVO();
+            BeanUtils.copyProperties(userMapper.selectByPrimaryKey(u.getUserId()),user);
+            user.setPassword(null);
+            user.setPostCount(u.getCount());
+            users.add(user);
+        }
+        return ApiRestResponse.success(users);
+    }
+
+    @Override
+    public void sign(Long categoryId, HttpServletRequest request) throws WebforumException {
+        if (categoryId==null){
+            throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
+        }
+        User user = JwtUtils.getUser(request);
+        int count = ucSubscribeMapper.UserSign(user.getUserId(),categoryId);
+        if (count == 0){
+            throw new WebforumException(WebforumExceptionEnum.SIGN_FAILED);
+        }
+    }
+
+    //获取用户总经验
+    @Override
+    public ApiRestResponse getUserExp(Long userId, HttpServletRequest request) throws WebforumException {
+        if (userId!=null){
+            return ApiRestResponse.success(ucSubscribeMapper.selectExpByUserId(userId));
+        }
+        return ApiRestResponse.success(ucSubscribeMapper.selectExpByUserId(JwtUtils.getUser(request).getUserId()));
+    }
+
+    //帖子点赞
+    @Override
+    public void goodPost(Long postId, HttpServletRequest request) throws WebforumException {
+        User user = goodCheck(postId == null, JwtUtils.getUser(request), WebforumExceptionEnum.LOGIN_EXPIRED);
+        Good good = goodMapper.selectByPostId(postId);
+        if (good==null){
+            Post post = postMapper.selectByPrimaryKey(postId);
+            if (post==null){
+                throw new WebforumException(WebforumExceptionEnum.GOOD_FAILED);
+            }
+            good = new Good();
+            good.setPostId(postId);
+            List<String> users = new ArrayList<>();
+            users.add(user.getUsername());
+            String json = JSONObject.toJSONString(users);
+            good.setUsers(json);
+            int insert = goodMapper.insert(good);
+            if (insert==0){
+                throw new WebforumException(WebforumExceptionEnum.GOOD_FAILED);
+            }
+            return;
+        }else {
+            List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+            if (list.contains(user.getUsername())){
+                return;
+            }
+            list.add(user.getUsername());
+            String json = JSONObject.toJSONString(list);
+            good.setUsers(json);
+            int i = goodMapper.updateByPrimaryKeyWithBLOBs(good);
+            if (i==0){
+                throw new WebforumException(WebforumExceptionEnum.GOOD_FAILED);
+            }
+            return;
+        }
+
+    }
+
+    @Override
+    public void unGoodPost(Long postId, HttpServletRequest request) throws WebforumException {
+        User user = goodCheck(postId == null, JwtUtils.getUser(request), WebforumExceptionEnum.LOGIN_EXPIRED);
+        Good good = goodMapper.selectByPostId(postId);
+        if (good==null){
+            throw new WebforumException(WebforumExceptionEnum.UNGOOD_FAILED);
+        }
+        List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+        if (list.contains(user.getUsername())){
+            list.remove(user.getUsername());
+            String json = JSONObject.toJSONString(list);
+            good.setUsers(json);
+            int i = goodMapper.updateByPrimaryKeySelective(good);
+            if (i==0){
+                throw new WebforumException(WebforumExceptionEnum.UNGOOD_FAILED);
+            }
+            return;
+        }
+        throw new WebforumException(WebforumExceptionEnum.UNGOOD_FAILED);
+    }
+
+    @Override
+    public ApiRestResponse checkGood(Long postId, HttpServletRequest request) throws WebforumException {
+        User user = goodCheck(postId == null, JwtUtils.getUser(request), WebforumExceptionEnum.LOGIN_EXPIRED);
+        Good good = goodMapper.selectByPostId(postId);
+        if (good==null){
+            return ApiRestResponse.success(0);
+        }
+        List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+        if (list.contains(user.getUsername())){
+            return ApiRestResponse.success(1);
+        }
+        return ApiRestResponse.success(0);
+    }
+
+    private User goodCheck(boolean b, User user2, WebforumExceptionEnum loginExpired) throws WebforumException {
+        if (b) {
+            throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
+        }
+        User user = user2;
+        if (user == null) {
+            throw new WebforumException(loginExpired);
+        }
+        return user;
     }
 
     private ApiRestResponse UnBanUser(boolean b, User user2) throws WebforumException {
@@ -681,7 +794,6 @@ public class UserServiceImpl implements UserService {
         }
         return ApiRestResponse.error(WebforumExceptionEnum.BANERROR);
     }
-
 
 
 }

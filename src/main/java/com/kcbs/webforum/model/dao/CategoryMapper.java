@@ -26,6 +26,8 @@ public interface CategoryMapper {
 
     List<PostVO> selectEssencesList();
 
+    List<PostVO> selectALLEssencesList();
+
     List<PostVO> selectEssencesListByCategoryId(Long categoryId);
 
     List<PostVO> selectListByCategoryOrderByHot(Long categoryId);

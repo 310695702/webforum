@@ -15,6 +15,11 @@
     from forum_comment_images
     where id = #{id,jdbcType=BIGINT}
   </select>
+  <select id="selectByCommentId" parameterType="java.lang.Long" resultType="java.lang.String">
+    SELECT comment_image
+    FROM forum_comment_images
+    WHERE comment_id = #{commentId,jdbcType=BIGINT}
+  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     delete from forum_comment_images
     where id = #{id,jdbcType=BIGINT}

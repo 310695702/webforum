@@ -2,6 +2,8 @@ package com.kcbs.webforum.model.dao;
 
 import com.kcbs.webforum.model.pojo.CommentImages;
 
+import java.util.List;
+
 public interface CommentImagesMapper {
     int deleteByPrimaryKey(Long id);
 
@@ -14,4 +16,6 @@ public interface CommentImagesMapper {
     int updateByPrimaryKeySelective(CommentImages record);
 
     int updateByPrimaryKey(CommentImages record);
+
+    String   selectByCommentId(Long commentId);
 }

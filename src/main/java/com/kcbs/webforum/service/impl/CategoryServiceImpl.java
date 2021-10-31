@@ -1,5 +1,6 @@
 package com.kcbs.webforum.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.kcbs.webforum.common.ApiRestResponse;
@@ -7,14 +8,18 @@ import com.kcbs.webforum.common.Constant;
 import com.kcbs.webforum.exception.WebforumException;
 import com.kcbs.webforum.exception.WebforumExceptionEnum;
 import com.kcbs.webforum.model.dao.CategoryMapper;
+import com.kcbs.webforum.model.dao.GoodMapper;
 import com.kcbs.webforum.model.dao.PostMapper;
 import com.kcbs.webforum.model.pojo.Category;
+import com.kcbs.webforum.model.pojo.Good;
 import com.kcbs.webforum.model.pojo.Post;
 import com.kcbs.webforum.model.vo.CategoryVO;
 import com.kcbs.webforum.model.vo.PostVO;
 import com.kcbs.webforum.service.CategoryService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,11 +32,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class CategoryServiceImpl implements CategoryService {
     @Resource
     CategoryMapper categoryMapper;
     @Resource
     PostMapper postMapper;
+    @Resource
+    GoodMapper goodMapper;
 
     //分类查询帖子
     @Override
@@ -39,21 +47,37 @@ public class CategoryServiceImpl implements CategoryService {
         if (pageNum==null||pageSize==null){
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
+
         String order = "update_time desc";
         if (!StringUtils.isEmpty(orderBy)){
             if ((Integer.parseInt(orderBy)%2)==1){
                 order = "update_time asc";
             }
         }
+
         if (categoryId==null){
-            PageHelper.startPage(pageNum,pageSize,order);
-            List<PostVO> posts = categoryMapper.selectList();
-            return getPageInfo(pageNum, pageSize, orderBy, order, posts);
-        }else {
+            if (orderBy!=null){
+                switch (order){
+                    case "4":
+                        PageHelper.startPage(pageNum,pageSize,order);
+                        List<PostVO> posts = categoryMapper.selectEssencesList();
+                        return getPageInfo(pageNum, pageSize, orderBy, order, posts);
+                }
+            }
+                PageHelper.startPage(pageNum,pageSize,order);
+                List<PostVO> posts = categoryMapper.selectList();
+                return getPageInfo(pageNum, pageSize, orderBy, order, posts);
+
+        }
+
+        else {
             PageHelper.startPage(pageNum,pageSize,order);
             List<PostVO> posts = categoryMapper.selectListByCategory(categoryId);
             for (PostVO postVO :posts){
                 postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                Good good = goodMapper.selectByPostId(postVO.getPostId());
+                if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
             }
             if (orderBy!=null){
                 switch (orderBy) {
@@ -64,6 +88,9 @@ public class CategoryServiceImpl implements CategoryService {
                         List<PostVO> posts1 = categoryMapper.selectListByCategoryOrderByHot(categoryId);
                         for (PostVO postVO :posts1){
                             postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                            Good good = goodMapper.selectByPostId(postVO.getPostId());
+                            if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
                         }
                         PageInfo pageInfo = new PageInfo(posts1);
                         return pageInfo;
@@ -72,6 +99,9 @@ public class CategoryServiceImpl implements CategoryService {
                         List<PostVO> posts2 = categoryMapper.selectListByCategoryOrderByHot(categoryId);
                         for (PostVO postVO :posts2){
                             postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                            Good good = goodMapper.selectByPostId(postVO.getPostId());
+                            if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
                         }
                         PageInfo pageInfo2 = new PageInfo(posts2);
                         return pageInfo2;
@@ -80,6 +110,9 @@ public class CategoryServiceImpl implements CategoryService {
                         List<PostVO> posts3 = categoryMapper.selectEssencesListByCategoryId(categoryId);
                         for (PostVO postVO :posts3){
                             postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                            Good good = goodMapper.selectByPostId(postVO.getPostId());
+                            if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
                         }
                         PageInfo pageInfo3 = new PageInfo(posts3);
                         return pageInfo3;
@@ -94,6 +127,9 @@ public class CategoryServiceImpl implements CategoryService {
     private PageInfo getPageInfo(Integer pageNum, Integer pageSize, String orderBy, String order, List<PostVO> posts) {
         for (PostVO postVO :posts){
             postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+            Good good = goodMapper.selectByPostId(postVO.getPostId());
+            if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
         }
         if (orderBy!=null){
             switch (orderBy) {
@@ -104,6 +140,9 @@ public class CategoryServiceImpl implements CategoryService {
                     List<PostVO> posts1 = categoryMapper.selectListOrderByHot();
                     for (PostVO postVO :posts1){
                         postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                        Good good = goodMapper.selectByPostId(postVO.getPostId());
+                        if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
                     }
                     PageInfo pageInfo = new PageInfo(posts1);
                     return pageInfo;
@@ -112,6 +151,9 @@ public class CategoryServiceImpl implements CategoryService {
                     List<PostVO> posts2 = categoryMapper.selectListOrderByHot();
                     for (PostVO postVO :posts2){
                         postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                        Good good = goodMapper.selectByPostId(postVO.getPostId());
+                        if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
                     }
                     PageInfo pageInfo2 = new PageInfo(posts2);
                     return pageInfo2;
@@ -120,6 +162,9 @@ public class CategoryServiceImpl implements CategoryService {
                     List<PostVO> posts3 = categoryMapper.selectEssencesList();
                     for (PostVO postVO :posts3){
                         postVO.setCommentNum(categoryMapper.selectCommentNum(postVO.getPostId()));
+                        Good good = goodMapper.selectByPostId(postVO.getPostId());
+                        if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                            postVO.setGoodNum(list.size());}
                     }
                     PageInfo pageInfo3 = new PageInfo(posts3);
                     return pageInfo3;
@@ -135,8 +180,13 @@ public class CategoryServiceImpl implements CategoryService {
         if (StringUtils.isEmpty(categoryName)) {
             throw new WebforumException(WebforumExceptionEnum.REQUEST_PARAM_ERROR);
         }
-        if (categoryMapper.selectByName(categoryName)!=null){
-            throw new WebforumException(WebforumExceptionEnum.CATEGORY_EXISTED);
+        Category category = categoryMapper.selectByName(categoryName);
+        if (category !=null){
+            if (category.getVisibility()==0){
+                throw new WebforumException(WebforumExceptionEnum.CATEGORY_EXISTED);
+            }else {
+                category.setVisibility(0);
+            }
         }
         String newFileName = UserServiceImpl.createFileName(file);
         //创建文件夹
@@ -150,10 +200,21 @@ public class CategoryServiceImpl implements CategoryService {
         } catch (URISyntaxException e) {
             throw new WebforumException(WebforumExceptionEnum.ADDCATEGORY_FAILED);
         }
-        Category category = new Category();
-        category.setCategoryName(categoryName);
-        category.setCategoryImage(path);
-        categoryMapper.insertSelective(category);
+        if (category !=null){
+            category.setCategoryImage(path);
+            int i = categoryMapper.updateByPrimaryKeySelective(category);
+            if (i!=1){
+                throw new WebforumException(WebforumExceptionEnum.ADD_FAILED);
+            }
+            return ApiRestResponse.success();
+        }
+        Category newcategory = new Category();
+        newcategory.setCategoryName(categoryName);
+        newcategory.setCategoryImage(path);
+        int count = categoryMapper.insertSelective(newcategory);
+        if (count!=1){
+            throw new WebforumException(WebforumExceptionEnum.ADD_FAILED);
+        }
         return ApiRestResponse.success();
     }
 
@@ -193,6 +254,11 @@ public class CategoryServiceImpl implements CategoryService {
         }
         PageHelper.startPage(pageNum,pageSize,"update_time desc");
         List<PostVO> posts = categoryMapper.searchListByContent(content);
+        for (PostVO postVO:posts){
+            Good good = goodMapper.selectByPostId(postVO.getPostId());
+            if(good!=null){List<String> list = JSONObject.parseArray(good.getUsers(), String.class);
+                postVO.setGoodNum(list.size());}
+        }
         PageInfo pageInfo = new PageInfo(posts);
         return pageInfo;
     }
@@ -223,16 +289,13 @@ public class CategoryServiceImpl implements CategoryService {
         //创建文件夹
         File fileDirectory = new File(Constant.CATEGORY_UPLOAD_DIR);
         //目标文件
-        File destFile = new File(Constant.FILE_UPLOAD_DIR + newFileName);
+        File destFile = new File(Constant.CATEGORY_UPLOAD_DIR + newFileName);
         UserServiceImpl.addFile(categoryImage, fileDirectory,destFile);
         String oldCategoryImage = category.getCategoryImage();
         File file = new File(Constant.CATEGORY_UPLOAD_DIR+oldCategoryImage.substring(oldCategoryImage.lastIndexOf("/")));
-        boolean isdelete = file.delete();
-        if (!isdelete){
-            throw new WebforumException(WebforumExceptionEnum.OLDIMAGE_DELETE_FAILED);
-        }
+        file.delete();
         try {
-            String path = UserServiceImpl.getHost(new URI(request.getRequestURL() + "")) + "/images/" + newFileName;
+            String path = UserServiceImpl.getHost(new URI(request.getRequestURL() + "")) + "/categoryImages/" + newFileName;
             category.setCategoryImage(path);
         } catch (URISyntaxException e) {
             e.printStackTrace();

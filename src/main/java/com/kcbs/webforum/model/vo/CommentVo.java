@@ -2,9 +2,11 @@ package com.kcbs.webforum.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
-public class CommentVo {
+public class CommentVo implements Serializable {
     private Long commentId;
     private Long userId;
     private Long parentId;
@@ -17,6 +19,24 @@ public class CommentVo {
     private String personalizedSignature;
     private String categoryName;
     private String title;
+    private int replyNum;
+    private List<String> images;
+
+    public List<String> getImages() {
+        return images;
+    }
+
+    public void setImages(List<String> images) {
+        this.images = images;
+    }
+
+    public int getReplyNum() {
+        return replyNum;
+    }
+
+    public void setReplyNum(int replyNum) {
+        this.replyNum = replyNum;
+    }
 
     public String getCategoryName() {
         return categoryName;

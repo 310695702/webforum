@@ -14,6 +14,8 @@ public interface PostMapper {
 
     Post selectByPrimaryKey(Long postId);
 
+    Post selectAllByPrimaryKey(Long postId);
+
     int updateByPrimaryKeySelective(Post record);
 
     int updateByPrimaryKey(Post record);
@@ -33,4 +35,6 @@ public interface PostMapper {
     long selectLastId();
 
     int deleteByCategoryId(Long categoryId);
+
+    List<Long> getAllPostId();
 }

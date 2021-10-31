@@ -6,11 +6,18 @@
     <result column="category_id" jdbcType="BIGINT" property="categoryId" />
     <result column="user_id" jdbcType="BIGINT" property="userId" />
     <result column="is_del" jdbcType="TINYINT" property="isDel" />
+      <result column="is_sign" jdbcType="INTEGER" property="isSign" />
+      <result column="exp" jdbcType="INTEGER" property="exp" />
+    <result column="sign_days" jdbcType="INTEGER" property="signDays" />
   </resultMap>
   <resultMap id="CategoryResultMap" type="com.kcbs.webforum.model.pojo.Category">
     <id column="category_id" jdbcType="BIGINT" property="categoryId" />
     <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
     <result column="category_image" jdbcType="VARCHAR" property="categoryImage" />
+    <result column="is_recommend" jdbcType="TINYINT" property="isRecommend" />
+      <result column="is_sign" jdbcType="INTEGER" property="isSign" />
+      <result column="exp" jdbcType="INTEGER" property="exp" />
+    <result column="sign_days" jdbcType="INTEGER" property="signDays" />
   </resultMap>
   <sql id="Base_Column_List">
     id, category_id, user_id, is_del
@@ -22,13 +29,14 @@
     where id = #{id,jdbcType=BIGINT}
   </select>
   <select id="selectByUCID" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select distinct uc1.id,uc1.category_id,uc1.user_id,uc1.is_del
+    select distinct uc1.id,uc1.category_id,uc1.user_id,uc1.is_del,uc1.is_sign,uc1.exp
     from forum_user_category_subscribe uc1 JOIN forum_user_category_subscribe uc2
     ON uc1.category_id = uc2.category_id
-    WHERE uc1.category_id = #{param2,jdbcType=BIGINT} AND uc1.user_id = #{param1,jdbcType=BIGINT}
+    WHERE uc1.category_id = #{param2,jdbcType=BIGINT} AND uc1.user_id = #{param1,jdbcType=BIGINT};
   </select>
+
   <select id="getCategoryByUserId" parameterType="java.lang.Long" resultMap="CategoryResultMap">
-    select distinct c.category_id,c.category_name,c.category_image
+    select distinct c.category_id,c.category_name,c.category_image,c.is_recommend,uc.is_sign,uc.exp,uc.sign_days
     from forum_user_category_subscribe uc JOIN forum_category c
     ON uc.category_id = c.category_id
 		WHERE uc.user_id = #{userId,jdbcType=BIGINT} AND uc.is_del = 0 AND c.visibility=0;
@@ -96,4 +104,37 @@
       is_del = #{isDel,jdbcType=TINYINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
+  <update id="UserSign" parameterType="java.lang.Long">
+    update forum_user_category_subscribe
+    set is_sign = 1,
+      exp = exp+10,
+      sign_days = sign_days+1
+    where  user_id = #{param1} AND category_id = #{param2} AND is_del=0 AND is_sign = 0;
+  </update>
+  <update id="updateSign" >
+    update forum_user_category_subscribe
+    set is_sign = 0;
+  </update>
+  <update id="updateSignDays" >
+    update forum_user_category_subscribe
+    set sign_days = 0
+    WHERE is_sign = 0;
+  </update>
+  <update id="post" parameterType="java.lang.Long">
+    update forum_user_category_subscribe
+    set
+      exp = exp+10
+    where  user_id = #{param1} AND category_id = #{param2} AND is_del=0;
+  </update>
+  <update id="comment" parameterType="java.lang.Long">
+    update forum_user_category_subscribe
+    set
+      exp = exp+3
+    where  user_id = #{param1} AND category_id = #{param2} AND is_del=0;
+  </update>
+  <select id="selectExpByUserId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    SELECT ifnull(SUM(exp),0)
+    FROM forum_user_category_subscribe
+    WHERE user_id = #{userId};
+  </select>
 </mapper>

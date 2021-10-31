@@ -1,10 +1,8 @@
 package com.kcbs.webforum.filter;
 
 import com.kcbs.webforum.exception.WebforumException;
-import com.kcbs.webforum.service.UserService;
 import com.kcbs.webforum.utils.JwtUtils;
 
-import javax.annotation.Resource;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,8 +14,6 @@ import java.io.PrintWriter;
  * 用户token校验过滤器
  */
 public class UserFilter implements Filter {
-    @Resource
-    UserService userService;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

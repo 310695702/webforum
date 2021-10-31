@@ -33,7 +33,7 @@ public interface UserService {
 
     ApiRestResponse delSubscribeCategory(HttpServletRequest request, Long categoryId) throws WebforumException;
 
-    ApiRestResponse getUser(HttpServletRequest request,Long userId) throws WebforumException;
+    ApiRestResponse getUser(HttpServletRequest request,Long userId,String username) throws WebforumException;
 
     ApiRestResponse getSubscribeList(HttpServletRequest request, Long subscribe, Integer pageNum, Integer pageSize) throws WebforumException;
 
@@ -58,4 +58,16 @@ public interface UserService {
     ApiRestResponse searchUser(Integer pageNum, Integer pageSize, String content) throws WebforumException;
 
     void improveInfo(UserInfoReq userInfo, HttpServletRequest request) throws WebforumException;
+
+    ApiRestResponse getUserRank();
+
+    void sign(Long categoryId, HttpServletRequest request) throws WebforumException;
+
+    ApiRestResponse getUserExp(Long userId, HttpServletRequest request) throws WebforumException;
+
+    void goodPost(Long postId, HttpServletRequest request) throws WebforumException;
+
+    void unGoodPost(Long postId, HttpServletRequest request) throws WebforumException;
+
+    ApiRestResponse checkGood(Long postId, HttpServletRequest request) throws WebforumException;
 }

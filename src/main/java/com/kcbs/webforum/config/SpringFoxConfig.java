@@ -9,6 +9,7 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.Contact;
 import springfox.documentation.service.Parameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -42,8 +43,10 @@ public class SpringFoxConfig {
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("Webforum文档")
-                .description("")
-                .termsOfServiceUrl("")
+                .contact(new Contact("HanYuXing","https://github.com/310695702","310695702@qq.com"))
+                .description("专为论坛提供的api文档")
+                .version("1.0.0")
+                .termsOfServiceUrl("47.111.9.152")
                 .build();
     }
 }

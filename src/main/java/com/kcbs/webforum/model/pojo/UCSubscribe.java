@@ -9,6 +9,36 @@ public class UCSubscribe {
 
     private Byte isDel;
 
+    private int isSign;
+
+    private int exp;
+
+    private int signDays;
+
+    public int getSignDays() {
+        return signDays;
+    }
+
+    public void setSignDays(int signDays) {
+        this.signDays = signDays;
+    }
+
+    public int getExp() {
+        return exp;
+    }
+
+    public void setExp(int exp) {
+        this.exp = exp;
+    }
+
+    public int getIsSign() {
+        return isSign;
+    }
+
+    public void setIsSign(int isSign) {
+        this.isSign = isSign;
+    }
+
     public Long getId() {
         return id;
     }

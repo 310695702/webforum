@@ -21,4 +21,16 @@ public interface UCSubscribeMapper {
     List<Category> getCategoryByUserId(Long userId);
 
     List<UCSubscribe> selectByUCID(Long userId,Long categoryId);
+
+    int UserSign(Long userId, Long categoryId);
+
+    int updateSign();
+
+    int updateSignDays();
+
+    int post(Long userId, Long categoryId);
+
+    int comment(Long userId, Long categoryId);
+
+    int selectExpByUserId(Long userId);
 }

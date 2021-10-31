@@ -49,9 +49,10 @@ public class UserController {
 
     @GetMapping("/getUser")
     @ApiOperation("获取用户信息")
-    public ApiRestResponse getUser(HttpServletRequest request,@RequestParam(required = false) Long userId) throws WebforumException {
-        return userService.getUser(request,userId);
+    public ApiRestResponse getUser(HttpServletRequest request,@RequestParam(required = false) Long userId,@RequestParam(required = false) String  username) throws WebforumException {
+        return userService.getUser(request,userId,username);
     }
+
 
     @ApiOperation("获取验证码")
     @GetMapping("/getCode")
@@ -227,5 +228,46 @@ public class UserController {
     public ApiRestResponse improveInfo(@Valid UserInfoReq userInfo,HttpServletRequest request) throws WebforumException {
         userService.improveInfo(userInfo,request);
         return ApiRestResponse.success();
+    }
+
+    //获取发帖用户排行
+    @GetMapping("/getUserRank")
+    @ApiOperation("获取用户排名信息")
+    public ApiRestResponse getUserRank(){
+        return userService.getUserRank();
+    }
+
+
+    @PostMapping("/user/sign")
+    @ApiOperation("用户签到")
+    public ApiRestResponse sign(Long categoryId,HttpServletRequest request) throws WebforumException {
+        userService.sign(categoryId,request);
+        return ApiRestResponse.success("签到成功！经验+10");
+    }
+
+    @PostMapping("/getUserExp")
+    @ApiOperation("获取用户总经验")
+    public ApiRestResponse getUserExp(@RequestParam(value = "userId",required = false) Long userId,HttpServletRequest request) throws WebforumException {
+        return userService.getUserExp(userId,request);
+    }
+
+    @PutMapping("/goodPost")
+    @ApiOperation("点赞")
+    public ApiRestResponse good(@RequestParam("postId")Long postId,HttpServletRequest request) throws WebforumException {
+        userService.goodPost(postId,request);
+        return ApiRestResponse.success();
+    }
+
+    @DeleteMapping("/goodPost")
+    @ApiOperation("取消点赞")
+    public ApiRestResponse unGood(@RequestParam("postId")Long postId,HttpServletRequest request) throws WebforumException {
+        userService.unGoodPost(postId,request);
+        return ApiRestResponse.success();
+    }
+
+    @GetMapping("/checkGood")
+    @ApiOperation("检查是否点赞")
+    public ApiRestResponse checkGood(@RequestParam("postId")Long postId,HttpServletRequest request) throws WebforumException {
+        return userService.checkGood(postId,request);
     }
 }

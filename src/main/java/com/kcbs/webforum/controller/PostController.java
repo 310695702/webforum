@@ -4,27 +4,31 @@ import com.github.pagehelper.PageInfo;
 import com.kcbs.webforum.common.ApiRestResponse;
 import com.kcbs.webforum.exception.WebforumException;
 import com.kcbs.webforum.model.request.PostReq;
+import com.kcbs.webforum.service.CommentService;
 import com.kcbs.webforum.service.PostService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
-
 @Api(tags = "帖子接口",description = " ")
 @RestController
 public class PostController {
     @Resource
     PostService postService;
+
+
+    @GetMapping("/getRandomPosts")
+    @CrossOrigin("*")
+    public ApiRestResponse randomPosts(){
+        return postService.selectRandomPost();
+    }
 
     @ApiOperation("用户发帖")
     @PostMapping("/user/post")
@@ -43,6 +47,7 @@ public class PostController {
     public ApiRestResponse uploadPostImage( @RequestParam(value = "images") List<MultipartFile> images,HttpServletRequest request) throws WebforumException {
         return postService.uploadPostImage(images,request);
     }
+
 
     @ApiOperation("用户或管理员删除帖子")
     @PostMapping("/deletePost")
@@ -85,6 +90,7 @@ public class PostController {
     }
 
 
+    //ID查询帖子
     @GetMapping("/getPostById")
     @ApiOperation("通过PostId获取帖子内容")
     public ApiRestResponse getPostById(@RequestParam Long postId,HttpServletRequest request) throws WebforumException {
